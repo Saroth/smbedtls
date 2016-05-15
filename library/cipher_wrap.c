@@ -61,6 +61,10 @@
 #include "mbedtls/ccm.h"
 #endif
 
+#if defined(MBEDTLS_SM4_C)
+#include "mbedtls/sm4.h"
+#endif
+
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
 #include <string.h>
 #endif
@@ -1283,6 +1287,100 @@ static const mbedtls_cipher_info_t arc4_128_info = {
 };
 #endif /* MBEDTLS_ARC4_C */
 
+#if defined(MBEDTLS_SM4_C)
+static void *sm4_ctx_alloc( void )
+{
+    mbedtls_sm4_context *sm4 = mbedtls_calloc( 1, sizeof( mbedtls_sm4_context ) );
+
+    if( sm4 == NULL )
+        return( NULL );
+
+    mbedtls_sm4_init( sm4 );
+
+    return( sm4 );
+}
+
+static void sm4_ctx_free( void *ctx )
+{
+    mbedtls_sm4_free( (mbedtls_sm4_context *) ctx );
+    mbedtls_free( ctx );
+}
+
+static int sm4_setkey_enc_wrap( void *ctx, const unsigned char *key,
+                                unsigned int key_bitlen )
+{
+    mbedtls_sm4_setkey_enc( (mbedtls_sm4_context *) ctx, key, key_bitlen );
+    return 0;
+}
+
+static int sm4_setkey_dec_wrap( void *ctx, const unsigned char *key,
+                                unsigned int key_bitlen )
+{
+    mbedtls_sm4_setkey_dec( (mbedtls_sm4_context *) ctx, key, key_bitlen );
+    return 0;
+}
+
+static int sm4_crypt_ecb_wrap( void *ctx, mbedtls_operation_t operation,
+        const unsigned char *input, unsigned char *output )
+{
+    return mbedtls_sm4_crypt_ecb( (mbedtls_sm4_context *) ctx, operation,
+            input, output );
+}
+
+static int sm4_crypt_cbc_wrap( void *ctx, mbedtls_operation_t operation,
+        size_t length, unsigned char *iv,
+        const unsigned char *input, unsigned char *output )
+{
+    return mbedtls_sm4_crypt_cbc( (mbedtls_sm4_context *) ctx, operation,
+            length, iv, input, output );
+}
+
+static const mbedtls_cipher_base_t sm4_base_info = {
+    MBEDTLS_CIPHER_ID_SM4,
+    sm4_crypt_ecb_wrap,
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    sm4_crypt_cbc_wrap,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
+    NULL,
+#endif
+    sm4_setkey_enc_wrap,
+    sm4_setkey_dec_wrap,
+    sm4_ctx_alloc,
+    sm4_ctx_free,
+};
+
+static const mbedtls_cipher_info_t sm4_ecb_info = {
+    MBEDTLS_CIPHER_SM4_ECB,
+    MBEDTLS_MODE_ECB,
+    128,
+    "SM4-ECB",
+    16,
+    0,
+    16,
+    &sm4_base_info,
+};
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+static const mbedtls_cipher_info_t sm4_cbc_info = {
+    MBEDTLS_CIPHER_SM4_CBC,
+    MBEDTLS_MODE_CBC,
+    128,
+    "SM4-CBC",
+    16,
+    0,
+    16,
+    &sm4_base_info,
+};
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+#endif /* MBEDTLS_SM4_C */
+
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
 static int null_crypt_stream( void *ctx, size_t length,
                               const unsigned char *input,
@@ -1437,6 +1535,13 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_DES_EDE3_CBC,         &des_ede3_cbc_info },
 #endif
 #endif /* MBEDTLS_DES_C */
+
+#if defined(MBEDTLS_SM4_C)
+    { MBEDTLS_CIPHER_SM4_ECB,              &sm4_ecb_info, },
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    { MBEDTLS_CIPHER_SM4_CBC,              &sm4_cbc_info, },
+#endif
+#endif /* MBEDTLS_SM4_C */
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
     { MBEDTLS_CIPHER_NULL,                 &null_cipher_info },

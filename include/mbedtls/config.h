@@ -710,6 +710,30 @@
 #define MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
 
 /**
+ * \def MBEDTLS_KEY_EXCHANGE_GM_ENABLED
+ *
+ * Enable the GM ciphers based ciphersuite modes in SSL / TLS.
+ *
+ * Requires:
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      MBEDTLS_GM_ECDHE_WITH_SM1_SM3
+ *      MBEDTLS_GM_ECP_WITH_SM1_SM3
+ *      MBEDTLS_GM_IBSDH_WITH_SM1_SM3
+ *      MBEDTLS_GM_IBC_WITH_SM1_SM3
+ *      MBEDTLS_GM_RSA_WITH_SM1_SM3
+ *      MBEDTLS_GM_RSA_WITH_SM1_SHA1
+ *      MBEDTLS_GM_ECDHE_WITH_SM4_SM3
+ *      MBEDTLS_GM_ECP_WITH_SM4_SM3
+ *      MBEDTLS_GM_IBSDH_WITH_SM4_SM3
+ *      MBEDTLS_GM_IBC_WITH_SM4_SM3
+ *      MBEDTLS_GM_RSA_WITH_SM4_SM3
+ *      MBEDTLS_GM_RSA_WITH_SM4_SHA1
+ */
+#define MBEDTLS_KEY_EXCHANGE_GM_ENABLED
+
+/**
  * \def MBEDTLS_PK_PARSE_EC_EXTENDED
  *
  * Enhance support for reading EC keys using variants of SEC1 not allowed by
@@ -1732,6 +1756,17 @@
  * Requires: MBEDTLS_BIGNUM_C and at least one MBEDTLS_ECP_DP_XXX_ENABLED
  */
 #define MBEDTLS_ECP_C
+
+/**
+ * \def MBEDTLS_SM4_C
+ *
+ * Enable the SM4 block cipher.
+ *
+ * Module:  library/sm4.c
+ *
+ * Requires:
+ */
+#define MBEDTLS_SM4_C
 
 /**
  * \def MBEDTLS_ENTROPY_C

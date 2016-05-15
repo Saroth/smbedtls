@@ -81,6 +81,7 @@ typedef enum {
     MBEDTLS_CIPHER_ID_CAMELLIA,
     MBEDTLS_CIPHER_ID_BLOWFISH,
     MBEDTLS_CIPHER_ID_ARC4,
+    MBEDTLS_CIPHER_ID_SM4,
 } mbedtls_cipher_id_t;
 
 /**
@@ -140,6 +141,8 @@ typedef enum {
     MBEDTLS_CIPHER_CAMELLIA_128_CCM,
     MBEDTLS_CIPHER_CAMELLIA_192_CCM,
     MBEDTLS_CIPHER_CAMELLIA_256_CCM,
+    MBEDTLS_CIPHER_SM4_ECB,
+    MBEDTLS_CIPHER_SM4_CBC,
 } mbedtls_cipher_type_t;
 
 typedef enum {
