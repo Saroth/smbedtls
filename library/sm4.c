@@ -1,3 +1,9 @@
+/*
+ * SM4 Encryption alogrithm (SMS4 algorithm)
+ * GM/T 0002-2012 Chinese National Standard refers to: http://www.oscca.gov.cn/ 
+ * Thanks to MbedTLS.
+ * Thanks to author: goldboar (goldboar@163.com).
+ */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -245,11 +251,11 @@ static void sm4_one_round(uint32_t sk[32],
 /*
  * SM4 key schedule (128-bit, encryption)
  */
-void mbedtls_sm4_setkey_enc(mbedtls_sm4_context *ctx,
-        const unsigned char key[MBEDTLS_SM4_KEY_SIZE], unsigned int keybits)
+int mbedtls_sm4_setkey_enc(mbedtls_sm4_context *ctx,
+        const unsigned char key[MBEDTLS_SM4_KEY_SIZE])
 {
-    if (keybits) {; }
     sm4_setkey(ctx->sk, key);
+    return 0;
 }
 #endif /* !MBEDTLS_SM4_SETKEY_ENC_ALT */
 
@@ -257,15 +263,15 @@ void mbedtls_sm4_setkey_enc(mbedtls_sm4_context *ctx,
 /*
  * SM4 key schedule (128-bit, decryption)
  */
-void mbedtls_sm4_setkey_dec(mbedtls_sm4_context *ctx,
-        const unsigned char key[MBEDTLS_SM4_KEY_SIZE], unsigned int keybits)
+int mbedtls_sm4_setkey_dec(mbedtls_sm4_context *ctx,
+        const unsigned char key[MBEDTLS_SM4_KEY_SIZE])
 {
     int i;
-    if (keybits) {; }
     sm4_setkey(ctx->sk, key);
     for (i = 0; i < MBEDTLS_SM4_KEY_SIZE; i++) {
         SWAP(ctx->sk[i], ctx->sk[31 - i]);
     }
+    return 0;
 }
 #endif /* !MBEDTLS_SM4_SETKEY_DEC_ALT */
 
@@ -292,7 +298,7 @@ int mbedtls_sm4_crypt_cbc(mbedtls_sm4_context *ctx, int mode, size_t length,
     unsigned char temp[MBEDTLS_SM4_KEY_SIZE];
 
     if (length % MBEDTLS_SM4_KEY_SIZE) {
-        return -1;//(MBEDTLS_ERR_SM4_INVALID_INPUT_LENGTH);
+        return (MBEDTLS_ERR_SM4_INVALID_INPUT_LENGTH);
     }
 
     if (mode == MBEDTLS_SM4_ENCRYPT) {
@@ -332,10 +338,84 @@ int mbedtls_sm4_crypt_cbc(mbedtls_sm4_context *ctx, int mode, size_t length,
 #endif /* !MBEDTLS_SM4_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
+
+/*
+ * SM4 test vectors from: GM/T 0002-2012 Chinese National Standard
+ */
+static const unsigned char sm4_test_buf[16] = {
+    0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+    0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10,
+};
+
+static const unsigned char sm4_test_key[16] = {
+    0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+    0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10,
+};
+
+static const unsigned char sm4_test_ecb_enc[2][16] = {
+    {   0x68, 0x1e, 0xdf, 0x34, 0xd2, 0x06, 0x96, 0x5e,
+        0x86, 0xb3, 0xe9, 0x4f, 0x53, 0x6e, 0x42, 0x46, },
+    {   0x59, 0x52, 0x98, 0xc7, 0xc6, 0xfd, 0x27, 0x1f,
+        0x04, 0x02, 0xf8, 0x04, 0xc3, 0x3d, 0x3f, 0x66, },
+};
+
 int mbedtls_sm4_self_test(int verbose)
 {
-    int ret = 0;
-    return( ret );
+    int ret = 0, i, j, k, u, v;
+    mbedtls_sm4_context ctx;
+    unsigned char buf[16];
+    unsigned char key[16];
+    const unsigned char *srctext = NULL, *desttext = NULL;
+
+    memcpy(key, sm4_test_key, 16);
+    mbedtls_sm4_init(&ctx);
+    for (i = 0; i < 4; i++) {
+        u = i >> 1;
+        v = i  & 1;
+
+        k = 1;
+        if (u == 1) {
+            k = 1000000;
+        }
+        if (v == MBEDTLS_SM4_DECRYPT) {
+            srctext = sm4_test_ecb_enc[u];
+            desttext = sm4_test_buf;
+            mbedtls_sm4_setkey_dec(&ctx, key);
+        }
+        else {
+            srctext = sm4_test_buf;
+            desttext = sm4_test_ecb_enc[u];
+            mbedtls_sm4_setkey_enc(&ctx, key);
+        }
+        if (verbose) {
+            mbedtls_printf("  SM4-ECB #%d (%s):", k,
+                    (v == MBEDTLS_SM4_DECRYPT) ? "dec" : "enc");
+        }
+
+        memcpy(buf, srctext, 16);
+        for (j = 0; j < k; j++) {
+            mbedtls_sm4_crypt_ecb(&ctx, v, buf, buf);
+        }
+        if (memcmp(buf, desttext, 16)) {
+            if (verbose) {
+                mbedtls_printf("failed\n");
+            }
+            ret = 1;
+            goto exit;
+        }
+        if (verbose != 0) {
+            mbedtls_printf("passed\n");
+        }
+    }
+    if (verbose != 0) {
+        mbedtls_printf("\n");
+    }
+
+    ret = 0;
+exit:
+    mbedtls_sm4_free(&ctx);
+
+    return (ret);
 }
 #endif /* MBEDTLS_SELF_TEST */
 

@@ -14,6 +14,8 @@
 #define MBEDTLS_SM4_ENCRYPT 1
 #define MBEDTLS_SM4_DECRYPT 0
 
+#define MBEDTLS_ERR_SM4_INVALID_INPUT_LENGTH        -0x0054
+
 #define MBEDTLS_SM4_KEY_SIZE 16
 
 #ifdef __cplusplus
@@ -29,19 +31,74 @@ typedef struct
 }
 mbedtls_sm4_context;
 
+/**
+ * \brief          Initialize SM4 context
+ *
+ * \param ctx      SM4 context to be initialized
+ */
 void mbedtls_sm4_init(mbedtls_sm4_context *ctx);
+/**
+ * \brief          Clear SM4 context
+ *
+ * \param ctx      SM4 context to be cleared
+ */
 void mbedtls_sm4_free(mbedtls_sm4_context *ctx);
-void mbedtls_sm4_setkey_enc(mbedtls_sm4_context *ctx,
-        const unsigned char key[MBEDTLS_SM4_KEY_SIZE], unsigned int keybits);
-void mbedtls_sm4_setkey_dec(mbedtls_sm4_context *ctx,
-        const unsigned char key[MBEDTLS_SM4_KEY_SIZE], unsigned int keybits);
+/**
+ * \brief          SM4 key schedule (encryption)
+ *
+ * \param ctx      SM4 context to be initialized
+ * \param key      16-byte secret key
+ *
+ * \return         0
+ */
+int mbedtls_sm4_setkey_enc(mbedtls_sm4_context *ctx,
+        const unsigned char key[MBEDTLS_SM4_KEY_SIZE]);
+/**
+ * \brief          SM4 key schedule (decryption)
+ *
+ * \param ctx      SM4 context to be initialized
+ * \param key      16-byte secret key
+ *
+ * \return         0
+ */
+int mbedtls_sm4_setkey_dec(mbedtls_sm4_context *ctx,
+        const unsigned char key[MBEDTLS_SM4_KEY_SIZE]);
 
+/**
+ * \brief          SM4-ECB block encryption/decryption
+ *
+ * \param ctx      SM4 context
+ * \param input    16 byte input block
+ * \param output   16 byte output block
+ *
+ * \return         0 if successful
+ */
 int mbedtls_sm4_crypt_ecb(mbedtls_sm4_context *ctx, int mode,
-        const unsigned char *input, unsigned char *output);
+        const unsigned char input[MBEDTLS_SM4_KEY_SIZE],
+        unsigned char output[MBEDTLS_SM4_KEY_SIZE]);
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+/**
+ * \brief          SM4-CBC buffer encryption/decryption
+ *
+ * \param ctx      SM4 context
+ * \param mode     MBEDTLS_SM4_ENCRYPT or MBEDTLS_SM4_DECRYPT
+ * \param length   length of the input data
+ * \param iv       initialization vector (updated after use)
+ * \param input    buffer holding the input data
+ * \param output   buffer holding the output data
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_SM4_INVALID_INPUT_LENGTH
+ */
 int mbedtls_sm4_crypt_cbc(mbedtls_sm4_context *ctx, int mode, size_t length,
         unsigned char iv[MBEDTLS_SM4_KEY_SIZE],
         const unsigned char *input, unsigned char *output);
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
 
+/**
+ * \brief          Checkup routine
+ *
+ * \return         0 if successful, or 1 if the test failed
+ */
 int mbedtls_sm4_self_test(int verbose);
 
 #ifdef __cplusplus

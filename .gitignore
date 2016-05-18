@@ -26,4 +26,5 @@ massif-*
 
 # Temporary files
 *.swp
+*.vimproject
 .exvim.*/
