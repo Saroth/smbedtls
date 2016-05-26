@@ -47,7 +47,7 @@ void mbedtls_sm4_free(mbedtls_sm4_context *ctx);
  * \brief          SM4 key schedule (encryption)
  *
  * \param ctx      SM4 context to be initialized
- * \param key      16-byte secret key
+ * \param key      <MBEDTLS_SM4_KEY_SIZE> byte secret key
  *
  * \return         0
  */
@@ -57,7 +57,7 @@ int mbedtls_sm4_setkey_enc(mbedtls_sm4_context *ctx,
  * \brief          SM4 key schedule (decryption)
  *
  * \param ctx      SM4 context to be initialized
- * \param key      16-byte secret key
+ * \param key      <MBEDTLS_SM4_KEY_SIZE> byte secret key
  *
  * \return         0
  */
@@ -68,8 +68,8 @@ int mbedtls_sm4_setkey_dec(mbedtls_sm4_context *ctx,
  * \brief          SM4-ECB block encryption/decryption
  *
  * \param ctx      SM4 context
- * \param input    16 byte input block
- * \param output   16 byte output block
+ * \param input    <MBEDTLS_SM4_KEY_SIZE> byte input block
+ * \param output   <MBEDTLS_SM4_KEY_SIZE> byte output block
  *
  * \return         0 if successful
  */
