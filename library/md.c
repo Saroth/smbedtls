@@ -58,6 +58,10 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  */
 static const int supported_digests[] = {
 
+#if defined(MBEDTLS_SM3_C)
+        MBEDTLS_MD_SM3,
+#endif
+
 #if defined(MBEDTLS_SHA512_C)
         MBEDTLS_MD_SHA512,
         MBEDTLS_MD_SHA384,
@@ -134,6 +138,10 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name )
     if( !strcmp( "SHA512", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_SHA512 );
 #endif
+#if defined(MBEDTLS_SM3_C)
+    if( !strcmp( "SM3", md_name ) )
+        return mbedtls_md_info_from_type( MBEDTLS_MD_SM3 );
+#endif
     return( NULL );
 }
 
@@ -172,6 +180,10 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
             return( &mbedtls_sha384_info );
         case MBEDTLS_MD_SHA512:
             return( &mbedtls_sha512_info );
+#endif
+#if defined(MBEDTLS_SM3_C)
+        case MBEDTLS_MD_SM3:
+            return( &mbedtls_sm3_info );
 #endif
         default:
             return( NULL );

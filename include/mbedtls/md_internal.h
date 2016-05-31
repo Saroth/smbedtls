@@ -106,6 +106,9 @@ extern const mbedtls_md_info_t mbedtls_sha256_info;
 extern const mbedtls_md_info_t mbedtls_sha384_info;
 extern const mbedtls_md_info_t mbedtls_sha512_info;
 #endif
+#if defined(MBEDTLS_SM3_C)
+extern const mbedtls_md_info_t mbedtls_sm3_info;
+#endif
 
 #ifdef __cplusplus
 }
