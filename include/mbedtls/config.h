@@ -245,6 +245,7 @@
 //#define MBEDTLS_SHA256_ALT
 //#define MBEDTLS_SHA512_ALT
 //#define MBEDTLS_SM4_ALT
+//#define MBEDTLS_SM3_ALT
 
 /**
  * \def MBEDTLS_MD2_PROCESS_ALT
@@ -2206,6 +2207,16 @@
  * This module adds support for SHA-384 and SHA-512.
  */
 #define MBEDTLS_SHA512_C
+
+/**
+ * \def MBEDTLS_SM3_C
+ *
+ * Enable the SM3 cryptographic hash algorithms.
+ *
+ * Module:  library/sm3.c
+ * Caller:  library/sm2.c
+ */
+#define MBEDTLS_SM3_C
 
 /**
  * \def MBEDTLS_SSL_CACHE_C

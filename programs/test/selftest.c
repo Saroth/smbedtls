@@ -50,6 +50,7 @@
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/timing.h"
+#include "mbedtls/sm3.h"
 #include "mbedtls/sm4.h"
 
 #include <stdlib.h>
@@ -141,6 +142,9 @@ const selftest_t selftests[] =
 #endif
 #if defined(MBEDTLS_SHA512_C)
     {"sha512", mbedtls_sha512_self_test},
+#endif
+#if defined(MBEDTLS_SM3_C)
+    {"sm3", mbedtls_sm3_self_test},
 #endif
 #if defined(MBEDTLS_ARC4_C)
     {"arc4", mbedtls_arc4_self_test},

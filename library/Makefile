@@ -62,9 +62,10 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		pk_wrap.o	pkcs12.o	pkcs5.o		\
 		pkparse.o	pkwrite.o	platform.o	\
 		ripemd160.o	rsa.o		sha1.o		\
-		sha256.o	sha512.o	sm4.o		\
-		threading.o	timing.o	version.o	\
-		version_features.o		xtea.o
+		sha256.o	sha512.o	sm3.o		\
+		sm4.o		threading.o	timing.o	\
+		version.o	version_features.o		\
+		xtea.o
 
 OBJS_X509=	certs.o		pkcs11.o	x509.o		\
 		x509_create.o	x509_crl.o	x509_crt.o	\

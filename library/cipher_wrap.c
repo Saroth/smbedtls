@@ -1309,12 +1309,14 @@ static void sm4_ctx_free( void *ctx )
 static int sm4_setkey_enc_wrap( void *ctx, const unsigned char *key,
                                 unsigned int key_bitlen )
 {
+    if (key_bitlen) { };
     return mbedtls_sm4_setkey_enc( (mbedtls_sm4_context *) ctx, key );
 }
 
 static int sm4_setkey_dec_wrap( void *ctx, const unsigned char *key,
                                 unsigned int key_bitlen )
 {
+    if (key_bitlen) { };
     return mbedtls_sm4_setkey_dec( (mbedtls_sm4_context *) ctx, key );
 }
 
