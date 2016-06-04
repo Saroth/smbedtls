@@ -574,6 +574,10 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
     sha384_process_wrap,
 };
 
+#endif /* MBEDTLS_SHA512_C */
+
+#if defined(MBEDTLS_SM3_C)
+
 static void sm3_starts_wrap( void *ctx )
 {
     mbedtls_sm3_starts( (mbedtls_sm3_context *) ctx );
@@ -638,6 +642,6 @@ const mbedtls_md_info_t mbedtls_sm3_info = {
     sm3_process_wrap,
 };
 
-#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_SM3_C */
 
 #endif /* MBEDTLS_MD_C */

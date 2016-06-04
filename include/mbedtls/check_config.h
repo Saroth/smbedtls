@@ -107,7 +107,8 @@
     !defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)   &&                  \
     !defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) &&                  \
-    !defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) ) )
+    !defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) &&                  \
+    !defined(MBEDTLS_ECP_DP_SM2P256V1_ENABLED) ) )
 #error "MBEDTLS_ECP_C defined, but not all prerequisites"
 #endif
 

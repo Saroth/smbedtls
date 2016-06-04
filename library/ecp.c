@@ -90,7 +90,8 @@ static unsigned long add_count, dbl_count, mul_count;
     defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)   ||   \
     defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) ||   \
-    defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+    defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) \\   \
+    defined(MBEDTLS_ECP_DP_SM2P256V1_ENABLED)
 #define ECP_SHORTWEIERSTRASS
 #endif
 
@@ -122,6 +123,9 @@ typedef enum
  */
 static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 {
+#if defined(MBEDTLS_ECP_DP_SM2P256V1_ENABLED)
+    { MBEDTLS_ECP_DP_SM2P256V1,    29,     256,    "sm2p256v1"         },
+#endif
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
     { MBEDTLS_ECP_DP_SECP521R1,    25,     521,    "secp521r1"         },
 #endif
