@@ -547,6 +547,9 @@ static const mbedtls_mpi_uint brainpoolP512r1_n[] = {
 };
 #endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
 
+/*
+ * Domain parameters for SM2 (http://www.oscca.gov.cn/News/201012/News_1197.htm)
+ */
 #if defined(MBEDTLS_ECP_DP_SM2P256V1_ENABLED)
 static const mbedtls_mpi_uint SM2P256v1_p[] = {
     BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF, 0xFF ),

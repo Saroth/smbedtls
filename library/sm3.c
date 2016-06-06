@@ -1,3 +1,10 @@
+/*
+ * SM3 Encryption alogrithm
+ * GM/T 0004-2012 Chinese National Standard refers to: http://www.oscca.gov.cn/ 
+ * Thanks to MbedTLS.
+ * Thanks to author: goldboar (goldboar@163.com).
+ */
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -8,12 +15,10 @@
 
 #include "mbedtls/sm3.h"
 
-#if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #endif /* MBEDTLS_PLATFORM_C */
-#endif /* MBEDTLS_SELF_TEST */
 
 #if !defined(MBEDTLS_SM3_ALT)
 
@@ -285,7 +290,7 @@ void mbedtls_sm3(const unsigned char *input, int ilen,
     memset(&ctx, 0, sizeof(mbedtls_sm3_context));
 }
 
-#if defined(MBEDTLS_FS_IO)
+#if defined(MBEDTLS_SM3_FILE) && defined(MBEDTLS_FS_IO)
 /*
  * output = SM3(file contents)
  */
@@ -316,8 +321,9 @@ int mbedtls_sm3_file(const char *path, unsigned char output[32])
     fclose(f);
     return (0);
 }
-#endif /* MBEDTLS_FS_IO */
+#endif /* MBEDTLS_SM3_FILE && MBEDTLS_FS_IO */
 
+#if defined(MBEDTLS_SM3_HMAC_C)
 #if !defined(MBEDTLS_SM3_HMAC_ALT)
 
 /*
@@ -396,6 +402,8 @@ void mbedtls_sm3_hmac(unsigned char *key, int keylen,
 
     memset(&ctx, 0, sizeof(mbedtls_sm3_context));
 }
+
+#endif /* MBEDTLS_SM3_HMAC_C */
 
 #if defined(MBEDTLS_SELF_TEST)
 

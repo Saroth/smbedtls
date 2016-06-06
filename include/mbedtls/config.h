@@ -2545,7 +2545,7 @@
  *
  * Module:  library/sm2.c
  *
- * Requires: MBEDTLS_SM3_C and MBEDTLS_ECP_DP_XXX_ENABLED
+ * Requires: MBEDTLS_SM3_C and MBEDTLS_ECP_DP_SM2P256V1_ENABLED
  */
 #define MBEDTLS_SM2_C
 
