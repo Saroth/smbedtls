@@ -50,6 +50,7 @@
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/timing.h"
+#include "mbedtls/sm2.h"
 #include "mbedtls/sm3.h"
 #include "mbedtls/sm4.h"
 
@@ -143,9 +144,6 @@ const selftest_t selftests[] =
 #if defined(MBEDTLS_SHA512_C)
     {"sha512", mbedtls_sha512_self_test},
 #endif
-#if defined(MBEDTLS_SM3_C)
-    {"sm3", mbedtls_sm3_self_test},
-#endif
 #if defined(MBEDTLS_ARC4_C)
     {"arc4", mbedtls_arc4_self_test},
 #endif
@@ -154,9 +152,6 @@ const selftest_t selftests[] =
 #endif
 #if defined(MBEDTLS_AES_C)
     {"aes", mbedtls_aes_self_test},
-#endif
-#if defined(MBEDTLS_SM4_C)
-    {"sm4", mbedtls_sm4_self_test},
 #endif
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
     {"gcm", mbedtls_gcm_self_test},
@@ -201,6 +196,15 @@ const selftest_t selftests[] =
     {"pkcs5", mbedtls_pkcs5_self_test},
 #endif
 /* Slower test after the faster ones */
+#if defined(MBEDTLS_SM2_C)
+    {"sm2", mbedtls_sm2_self_test},
+#endif
+#if defined(MBEDTLS_SM3_C)
+    {"sm3", mbedtls_sm3_self_test},
+#endif
+#if defined(MBEDTLS_SM4_C)
+    {"sm4", mbedtls_sm4_self_test},
+#endif
 #if defined(MBEDTLS_TIMING_C)
     {"timing", mbedtls_timing_self_test},
 #endif

@@ -107,6 +107,10 @@ extern const mbedtls_pk_info_t mbedtls_eckeydh_info;
 extern const mbedtls_pk_info_t mbedtls_ecdsa_info;
 #endif
 
+#if defined(MBEDTLS_SM2_C)
+extern const mbedtls_pk_info_t mbedtls_sm2_info;
+#endif
+
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
 #endif

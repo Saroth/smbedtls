@@ -41,6 +41,10 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_SM2_C)
+#include "mbedtls/sm2.h"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -395,6 +399,80 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     eckey_debug,        /* Compatible key structures */
 };
 #endif /* MBEDTLS_ECDSA_C */
+
+#if defined(MBEDTLS_SM2_C)
+
+static int sm2_can_do( mbedtls_pk_type_t type )
+{
+    return( type == MBEDTLS_PK_SM2 );
+}
+
+static int sm2_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
+                       const unsigned char *sig, size_t sig_len )
+{
+    if (ctx || md_alg || hash || hash_len || sig || sig_len) { }
+    return 0;
+}
+
+static int sm2_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    if (ctx || md_alg || hash || hash_len || sig || sig_len || f_rng || p_rng) { }
+    return 0;
+}
+
+static int sm2_decrypt_wrap( void *ctx,
+                    const unsigned char *input, size_t ilen,
+                    unsigned char *output, size_t *olen, size_t osize,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    if (ctx || input || ilen || output || olen || osize || f_rng || p_rng) { }
+    return 0;
+}
+
+static int sm2_encrypt_wrap( void *ctx,
+                    const unsigned char *input, size_t ilen,
+                    unsigned char *output, size_t *olen, size_t osize,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    if (ctx || input || ilen || output || olen || osize || f_rng || p_rng) { }
+    return 0;
+}
+
+static void *sm2_alloc_wrap( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sm2_context ) );
+
+    if( ctx != NULL )
+        memset( ctx, 0, sizeof( mbedtls_sm2_context ) );
+
+    return( ctx );
+}
+
+static void sm2_free_wrap( void *ctx )
+{
+    mbedtls_zeroize( ctx, sizeof( mbedtls_sm2_context ) );
+    mbedtls_free( ctx );
+}
+
+const mbedtls_pk_info_t mbedtls_sm2_info = {
+    MBEDTLS_PK_SM2,
+    "SM2",
+    eckey_get_bitlen,   /* Compatible key structures */
+    sm2_can_do,
+    sm2_verify_wrap,
+    sm2_sign_wrap,
+    sm2_decrypt_wrap,
+    sm2_encrypt_wrap,
+    eckey_check_pair,   /* Compatible key structures */
+    sm2_alloc_wrap,
+    sm2_free_wrap,
+    eckey_debug,        /* Compatible key structures */
+};
+#endif /* MBEDTLS_SM2_C */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*

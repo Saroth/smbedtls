@@ -92,6 +92,10 @@ const mbedtls_pk_info_t * mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
         case MBEDTLS_PK_ECDSA:
             return( &mbedtls_ecdsa_info );
 #endif
+#if defined(MBEDTLS_SM2_C)
+        case MBEDTLS_PK_SM2:
+            return( &mbedtls_sm2_info );
+#endif
         /* MBEDTLS_PK_RSA_ALT omitted on purpose */
         default:
             return( NULL );

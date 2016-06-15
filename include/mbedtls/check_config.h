@@ -108,12 +108,14 @@
     !defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) &&                  \
-    !defined(MBEDTLS_ECP_DP_SM2P256V1_ENABLED) ) )
+    !defined(MBEDTLS_ECP_DP_SM2P256R1_ENABLED) &&                  \
+    !defined(MBEDTLS_ECP_DP_SM2P256T1_ENABLED) ) )
 #error "MBEDTLS_ECP_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SM2_C) &&                                       \
-    ( !defined(MBEDTLS_SM3_C) || !defined(MBEDTLS_ECP_DP_SM2P256V1_ENABLED) )
+    ( !defined(MBEDTLS_SM3_C) ||                                    \
+      !defined(MBEDTLS_ECP_C) )
 #error "MBEDTLS_SM2_C defined, but not all prerequisites"
 #endif
 

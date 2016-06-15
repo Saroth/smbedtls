@@ -66,6 +66,7 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	random/gen_random_ctr_drbg$(EXEXT)				\
 	test/ssl_cert_test$(EXEXT)	test/benchmark$(EXEXT)		\
 	test/selftest$(EXEXT)		test/udp_proxy$(EXEXT)		\
+	test/gm_dev_test$(EXEXT)						\
 	util/pem2der$(EXEXT)		util/strerror$(EXEXT)		\
 	x509/cert_app$(EXEXT)		x509/crl_app$(EXEXT)		\
 	x509/cert_req$(EXEXT)		x509/cert_write$(EXEXT)		\
@@ -231,6 +232,10 @@ ssl/mini_client$(EXEXT): ssl/mini_client.c $(DEP)
 test/ssl_cert_test$(EXEXT): test/ssl_cert_test.c $(DEP)
 	echo "  CC    test/ssl_cert_test.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/ssl_cert_test.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test/gm_dev_test$(EXEXT): test/gm_dev_test.c $(DEP)
+	echo "  CC    test/gm_dev_test.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/gm_dev_test.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/benchmark$(EXEXT): test/benchmark.c $(DEP)
 	echo "  CC    test/benchmark.c"
