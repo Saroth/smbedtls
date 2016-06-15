@@ -32,7 +32,8 @@ void mbedtls_sm2_free(mbedtls_sm2_context *ctx)
 }
 
 /**
- * SM2 KDF (GM/T 0003-2012 - Part 3: Key Exchange Protocol 5.4.3)
+ * SM2 KDF (ISO/IEC 15946-2 3.1.3)
+ * (GM/T 0003-2012 - Part 3: Key Exchange Protocol 5.4.3)
  */
 static int mbedtls_sm2_pbkdf2(mbedtls_md_context_t *ctx,
         const unsigned char *password, size_t plen,
@@ -145,7 +146,7 @@ int mbedtls_sm2_encrypt(mbedtls_sm2_context *ctx,
         MBEDTLS_MPI_CHK(mbedtls_ecp_is_zero(&point));
 #endif /* MBEDTLS_SM2_CHECK_IS_VALID_POINT */
 
-        /* A4: [k]Pb = (x2, y2) */
+        /* A4: [k]PB = (x2, y2) */
         MBEDTLS_MPI_CHK(mbedtls_ecp_mul(&ctx->grp, &point, &k, &ctx->Q,
                     NULL, NULL));
 
@@ -183,13 +184,15 @@ int mbedtls_sm2_encrypt(mbedtls_sm2_context *ctx,
     /* A7: C3 = Hash(x2 || M || y2) */
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.X, xym, xlen));
     memmove(xym + xlen, input, ilen);
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.Y, xym + xlen, ylen));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.Y, xym + xlen + ilen, ylen));
     mbedtls_md(md_ctx.md_info, xym, xlen + ilen + ylen, output + *len);
     *len += mbedtls_md_get_size(md_ctx.md_info);
 
 cleanup:
     mbedtls_mpi_free(&k);
+#if defined(MBEDTLS_SM2_CHECK_IS_VALID_POINT)
     mbedtls_mpi_free(&h);
+#endif
     mbedtls_ecp_point_free(&point);
     if (xym) {
         mbedtls_free(xym);
@@ -203,8 +206,88 @@ int mbedtls_sm2_decrypt(mbedtls_sm2_context *ctx,
         const unsigned char *input, size_t ilen,
         unsigned char *output, size_t *olen)
 {
-    if (ctx || input || ilen || output || olen) {}
-    return 0;
+    int ret = 0;
+    size_t i;
+#if defined(MBEDTLS_SM2_CHECK_IS_VALID_POINT)
+    mbedtls_mpi h;
+#endif
+    mbedtls_ecp_point C1;
+    mbedtls_ecp_point point;
+    mbedtls_md_context_t md_ctx;
+    size_t c1len, ptlen, mdlen, xlen, ylen;
+    unsigned char *xym = NULL;
+
+    /* B1: get C1 */
+    c1len = 1 + (ctx->grp.pbits + 7) / 8 * 2;
+    mbedtls_ecp_point_init(&C1);
+    MBEDTLS_MPI_CHK(mbedtls_ecp_point_read_binary(&ctx->grp, &C1,
+                input, c1len));
+
+#if defined(MBEDTLS_SM2_CHECK_IS_VALID_POINT)
+    /* B2: check [h]C1 != O */
+    mbedtls_mpi_init(&h);
+    mbedtls_mpi_read_binary(&h, (const unsigned char *)"\x01", 1);
+    MBEDTLS_MPI_CHK(mbedtls_ecp_mul(&ctx->grp, &point, &h, &C1, NULL, NULL));
+    MBEDTLS_MPI_CHK(mbedtls_ecp_is_zero(&point));
+#endif /* MBEDTLS_SM2_CHECK_IS_VALID_POINT */
+
+    /* B3: [dB]C1 = (x2, y2) */
+    mbedtls_ecp_point_init(&point);
+    MBEDTLS_MPI_CHK(mbedtls_ecp_mul(&ctx->grp, &point, &ctx->d, &C1,
+                NULL, NULL));
+
+    /* B4: t = KDF(x2 || y2, klen) */
+    xlen = mbedtls_mpi_size(&point.X);
+    ylen = mbedtls_mpi_size(&point.Y);
+    mbedtls_md_init(&md_ctx);
+    MBEDTLS_MPI_CHK(mbedtls_md_setup(&md_ctx,
+            mbedtls_md_info_from_type(MBEDTLS_MD_SM3), 0));
+    mdlen = mbedtls_md_get_size(md_ctx.md_info);
+    ptlen = ilen - c1len - mdlen;
+    if ((xym = mbedtls_calloc(1, xlen + ylen + ptlen)) == NULL) {
+        return MBEDTLS_ERR_SM2_ALLOC_FAILED;
+    }
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.X, xym, xlen));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.Y, xym + xlen, ylen));
+    MBEDTLS_MPI_CHK(mbedtls_sm2_pbkdf2(&md_ctx, xym, xlen + ylen,
+                NULL, 0, 0, ptlen, xym + xlen + ylen));
+    for (i = 0; i < ptlen; i++) {
+        if (*(xym + xlen + ylen + i)) {
+            break;
+        }
+    }
+    if (i >= xlen + ylen) {
+        MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_KDF_FAILED);
+    }
+
+    /* B5: M' = C2 xor t */
+    for (i = 0; i < ptlen; i++) {
+        output[i] = input[c1len + i] ^ *(xym + xlen + ylen + i);
+    }
+    *olen = ptlen;
+
+    /* B6: check Hash(x2 || M' || y2) == C3 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.X, xym, xlen));
+    memmove(xym + xlen, output, *olen);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.Y,
+                xym + xlen + *olen, ylen));
+    mbedtls_md(md_ctx.md_info, xym, xlen + *olen + ylen, xym);
+    if (memcmp(input + c1len + ptlen, xym, mdlen)) {
+        MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_DECRYPT_BAD_HASH);
+    }
+
+cleanup:
+#if defined(MBEDTLS_SM2_CHECK_IS_VALID_POINT)
+    mbedtls_mpi_free(&h);
+#endif
+    mbedtls_ecp_point_free(&point);
+    mbedtls_ecp_point_free(&C1);
+    if (xym) {
+        mbedtls_free(xym);
+    }
+    mbedtls_md_free(&md_ctx);
+
+    return (ret);
 }
 
 int mbedtls_sm2_sign(mbedtls_sm2_context *ctx,
@@ -301,12 +384,13 @@ static const unsigned char sm2_test_rand_fix[] = {
     mbedtls_printf(" <\n");                             \
 } while (0);
 
-int mbedtls_sm2_self_test(int verbose)
+int mbedtls_sm2_encrypt_self_test(void)
 {
     int ret;
-    unsigned int i;
+    size_t i;
     unsigned char debug[1024];
     unsigned char output[1024];
+    unsigned char decrypted[1024];
     unsigned int outlen = 0;
 
     mbedtls_mpi k;
@@ -321,8 +405,11 @@ int mbedtls_sm2_self_test(int verbose)
     unsigned char * C = NULL;
     size_t x2len, y2len, klen;
 
+    mbedtls_ecp_point point;
+    size_t c1len, ptlen, mdlen, xlen, ylen, olen;
+    unsigned char *xym = NULL;
+
     mbedtls_printf(" ## SM2 Encryption test\n");
-    if (verbose) {}
 
     mbedtls_printf(" SM2 context init...\n");
     mbedtls_sm2_init(&ctx);
@@ -460,6 +547,90 @@ int mbedtls_sm2_self_test(int verbose)
     mbedtls_printf(" get ciphertext:");
     mbedtls_dmp(output, outlen);
 
+
+    mbedtls_printf(" ## SM2 Decryption test\n");
+
+    mbedtls_printf(" /* B1: get C1 */\n");
+    c1len = 1 + (ctx.grp.pbits + 7) / 8 * 2;
+    mbedtls_printf(" read C1...\n");
+    MBEDTLS_MPI_CHK(mbedtls_ecp_point_read_binary(&ctx.grp, &C1,
+                output, c1len));
+    mbedtls_dmp_mpi(C1.X);
+    mbedtls_dmp_mpi(C1.Y);
+    mbedtls_dmp_mpi(C1.Z);
+
+    mbedtls_printf(" /* B2: check [h]C1 != O */\n");
+    mbedtls_mpi_init(&h);
+    mbedtls_mpi_read_binary(&h, (const unsigned char *)"\x01", 1);
+    mbedtls_printf(" compute [h]C1...\n");
+    MBEDTLS_MPI_CHK(mbedtls_ecp_mul(&ctx.grp, &point, &h, &C1, NULL, NULL));
+    mbedtls_printf(" check point is zero...\n");
+    MBEDTLS_MPI_CHK(mbedtls_ecp_is_zero(&point));
+
+    mbedtls_printf(" /* B3: [dB]C1 = (x2, y2) */\n");
+    mbedtls_ecp_point_init(&point);
+    mbedtls_printf(" compute [dB]C1...\n");
+    MBEDTLS_MPI_CHK(mbedtls_ecp_mul(&ctx.grp, &point, &ctx.d, &C1,
+                NULL, NULL));
+    mbedtls_dmp_mpi(ctx.d);
+    mbedtls_dmp_mpi(point.X);
+    mbedtls_dmp_mpi(point.Y);
+    mbedtls_dmp_mpi(point.Z);
+
+    mbedtls_printf(" /* B4: t = KDF(x2 || y2, klen) */\n");
+    xlen = mbedtls_mpi_size(&point.X);
+    ylen = mbedtls_mpi_size(&point.Y);
+    mbedtls_md_init(&sm3_ctx);
+    mbedtls_printf(" setup message digest...\n");
+    MBEDTLS_MPI_CHK(mbedtls_md_setup(&sm3_ctx,
+            mbedtls_md_info_from_type(MBEDTLS_MD_SM3), 0));
+    mdlen = mbedtls_md_get_size(sm3_ctx.md_info);
+    ptlen = outlen - c1len - mdlen;
+    mbedtls_printf(" calloc space, size:%ld+%ld+%ld...\n", xlen, ylen, ptlen);
+    if ((xym = mbedtls_calloc(1, xlen + ylen + ptlen)) == NULL) {
+        return MBEDTLS_ERR_SM2_ALLOC_FAILED;
+    }
+    mbedtls_printf(" get xym binary:");
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.X, xym, xlen));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.Y, xym + xlen, ylen));
+    mbedtls_dmp(xym, xlen + ylen);
+    mbedtls_printf(" compute KDF...\n");
+    MBEDTLS_MPI_CHK(mbedtls_sm2_pbkdf2(&sm3_ctx, xym, xlen + ylen,
+                NULL, 0, 0, ptlen, xym + xlen + ylen));
+    mbedtls_printf(" get t:");
+    mbedtls_dmp(xym + xlen + ylen, ptlen);
+    mbedtls_printf(" check t...\n");
+    for (i = 0; i < ptlen; i++) {
+        if (*(xym + xlen + ylen + i)) {
+            break;
+        }
+    }
+    if (i >= xlen + ylen) {
+        MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_KDF_FAILED);
+    }
+
+    mbedtls_printf(" /* B5: M' = C2 xor t */\n");
+    for (i = 0; i < ptlen; i++) {
+        decrypted[i] = output[c1len + i] ^ *(xym + xlen + ylen + i);
+    }
+    olen = ptlen;
+    mbedtls_printf(" get M'(%ld byte):", olen);
+    mbedtls_dmp(decrypted, olen);
+
+    mbedtls_printf(" /* B6: check Hash(x2 || M' || y2) == C3 */\n");
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.X, xym, xlen));
+    memmove(xym + xlen, decrypted, olen);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.Y,
+                xym + xlen + olen, ylen));
+    mbedtls_md(sm3_ctx.md_info, xym, xlen + olen + ylen, xym);
+    mbedtls_printf(" get md:");
+    mbedtls_dmp(xym, mdlen);
+    mbedtls_printf(" check C3...\n");
+    if (memcmp(output + c1len + ptlen, xym, mdlen)) {
+        MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_DECRYPT_BAD_HASH);
+    }
+
+
 cleanup:
     mbedtls_mpi_free(&k);
     mbedtls_mpi_free(&h);
@@ -485,6 +656,26 @@ cleanup:
     }
 
     return (ret);
+}
+
+int mbedtls_sm2_decrypt_self_test(void)
+{
+    int ret = 0;
+    return ret;
+}
+
+int mbedtls_sm2_self_test(int verbose)
+{
+    int ret = 0;
+
+    if (verbose) {}
+    if ((ret = mbedtls_sm2_encrypt_self_test())) {
+        return ret;
+    }
+    if ((ret = mbedtls_sm2_decrypt_self_test())) {
+        return ret;
+    }
+    return ret;
 }
 #endif /* MBEDTLS_SELF_TEST */
 

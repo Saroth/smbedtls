@@ -14,8 +14,10 @@
 #include "ecp.h"
 #include "md.h"
 
-#define MBEDTLS_ERR_SM2_BAD_INPUT_DATA  -0x4800     /**< Bad input parameters to function. */
-#define MBEDTLS_ERR_SM2_ALLOC_FAILED    -0x4880     /**< Memory allocation failed. */
+#define MBEDTLS_ERR_SM2_BAD_INPUT_DATA  -0x4800     /*!< Bad input parameters to function. */
+#define MBEDTLS_ERR_SM2_ALLOC_FAILED    -0x4880     /*!< Memory allocation failed. */
+#define MBEDTLS_ERR_SM2_KDF_FAILED      -0x4900     /*!< KDF got empty result. */
+#define MBEDTLS_ERR_SM2_DECRYPT_BAD_HASH -0x4980    /*!< Bad C3 in SM2 decrypt */
 
 #define MBEDTLS_SM2_CHECK_IS_VALID_POINT
 
