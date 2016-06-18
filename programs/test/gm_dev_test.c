@@ -23,13 +23,12 @@ int main(void)
 #include <string.h>
 
 #include "mbedtls/sm2.h"
-#include "mbedtls/sm3.h"
 
 int main(void)
 {
     mbedtls_printf(" # GM algorithms test in development.\n");
 
-    mbedtls_sm2_self_test(0);
+    mbedtls_sm2_self_test(1);
 
     return (0);
 }
