@@ -18,6 +18,8 @@
 #define MBEDTLS_ERR_SM2_ALLOC_FAILED    -0x4880     /*!< Memory allocation failed. */
 #define MBEDTLS_ERR_SM2_KDF_FAILED      -0x4900     /*!< KDF got empty result. */
 #define MBEDTLS_ERR_SM2_DECRYPT_BAD_HASH -0x4980    /*!< Bad C3 in SM2 decrypt */
+#define MBEDTLS_ERR_SM2_RANDOM_FAILED   -0x4A00     /*!< Generation of random value, such as (ephemeral) key, failed. */
+#define MBEDTLS_ERR_SM2_BAD_SIGNATURE   -0x4A80     /*!< Invalid signature */
 
 #define MBEDTLS_SM2_CHECK_IS_VALID_POINT
 
@@ -106,10 +108,8 @@ int mbedtls_sm2_decrypt( mbedtls_sm2_context *ctx,
  * \return          0 if successful,
  *                  ...
  */
-int mbedtls_sm2_sign( mbedtls_sm2_context *ctx,
-        mbedtls_md_type_t md_alg,
-        const unsigned char *hash,
-        unsigned char *sig,
+int mbedtls_sm2_sign( mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
+        const unsigned char *hash, unsigned char *sig,
         int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
@@ -117,16 +117,14 @@ int mbedtls_sm2_sign( mbedtls_sm2_context *ctx,
  *
  * \param ctx       SM2 context
  * \param md_alg    Algorithm that was used to hash the message
- * \param sig       Signature to verify, 64 bytes
  * \param hash      Message hash
+ * \param sig       Signature to verify, 64 bytes
  *
  * \return          0 if successful,
  *                  ...
  */
-int mbedtls_sm2_verify( mbedtls_sm2_context *ctx,
-        mbedtls_md_type_t md_alg,
-        const unsigned char *sig,
-        const unsigned char *hash );
+int mbedtls_sm2_verify(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
+        const unsigned char *hash, const unsigned char *sig);
 
 /**
  * \brief          Checkup routine
