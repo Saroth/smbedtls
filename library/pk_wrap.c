@@ -411,8 +411,11 @@ static int sm2_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
-    if (ctx || md_alg || hash || hash_len || sig || sig_len) { }
-    return 0;
+    if( hash_len != mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) )
+            || sig_len <= 0 )
+        return( MBEDTLS_ERR_ECP_VERIFY_FAILED );
+
+    return mbedtls_sm2_verify( (mbedtls_sm2_context *) ctx, md_alg, hash, sig );
 }
 
 static int sm2_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
@@ -420,8 +423,17 @@ static int sm2_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    unsigned char *sig, size_t *sig_len,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    if (ctx || md_alg || hash || hash_len || sig || sig_len || f_rng || p_rng) { }
-    return 0;
+    int ret;
+
+    if( hash_len != mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) )
+            || sig_len == NULL )
+        return( MBEDTLS_ERR_SM2_BAD_INPUT_DATA );
+    ret = mbedtls_sm2_sign( (mbedtls_sm2_context *) ctx, md_alg, hash, sig,
+            f_rng, p_rng );
+    if( ret == 0 )
+        *sig_len = ( ((mbedtls_sm2_context *) ctx)->grp.nbits + 7 ) / 8 * 2;
+
+    return( ret );
 }
 
 static int sm2_decrypt_wrap( void *ctx,
@@ -429,8 +441,16 @@ static int sm2_decrypt_wrap( void *ctx,
                     unsigned char *output, size_t *olen, size_t osize,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    if (ctx || input || ilen || output || olen || osize || f_rng || p_rng) { }
-    return 0;
+    mbedtls_md_type_t md_type = MBEDTLS_SM2_SPECIFIC_MD_ALGORITHM;
+    size_t addlen = 1 +
+        ( ((mbedtls_sm2_context *) ctx)->grp.nbits + 7 ) / 8 * 2 +
+        mbedtls_md_get_size( mbedtls_md_info_from_type( md_type ) );
+
+    if( f_rng || p_rng ) {  }           // Unused parameters
+    if( ilen < addlen || osize < (ilen - addlen) )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    return mbedtls_sm2_decrypt( (mbedtls_sm2_context *) ctx, md_type,
+            input, ilen, output, olen );
 }
 
 static int sm2_encrypt_wrap( void *ctx,
@@ -438,8 +458,15 @@ static int sm2_encrypt_wrap( void *ctx,
                     unsigned char *output, size_t *olen, size_t osize,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    if (ctx || input || ilen || output || olen || osize || f_rng || p_rng) { }
-    return 0;
+    mbedtls_md_type_t md_type = MBEDTLS_SM2_SPECIFIC_MD_ALGORITHM;
+    size_t addlen = 1 +
+        ( ((mbedtls_sm2_context *) ctx)->grp.nbits + 7 ) / 8 * 2 +
+        mbedtls_md_get_size( mbedtls_md_info_from_type( md_type ) );
+
+    if( osize < (ilen + addlen) )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    return mbedtls_sm2_encrypt( (mbedtls_sm2_context *) ctx, md_type,
+            input, ilen, output, olen, f_rng, p_rng );
 }
 
 static void *sm2_alloc_wrap( void )

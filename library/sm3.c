@@ -18,6 +18,8 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdio.h>
+#define mbedtls_printf      printf
 #endif /* MBEDTLS_PLATFORM_C */
 
 #if !defined(MBEDTLS_SM3_ALT)
