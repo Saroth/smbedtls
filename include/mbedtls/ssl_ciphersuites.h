@@ -261,6 +261,8 @@ typedef enum {
     MBEDTLS_KEY_EXCHANGE_ECDHE_PSK,
     MBEDTLS_KEY_EXCHANGE_ECDH_RSA,
     MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA,
+    MBEDTLS_KEY_EXCHANGE_SM2,
+    MBEDTLS_KEY_EXCHANGE_ECDHE_SM2,
 } mbedtls_key_exchange_type_t;
 
 /* Key exchanges using a certificate */

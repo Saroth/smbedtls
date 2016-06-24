@@ -435,14 +435,12 @@ cleanup:
 }
 
 int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
-        const unsigned char *input, size_t ilen,
         const unsigned char *id, size_t idlen, unsigned char *z)
 {
     int ret = 0;
     unsigned char * m = NULL;
     unsigned char * p;
     size_t mlen;
-    size_t mdlen;
     size_t l;
     const mbedtls_md_info_t * md_info = NULL;
 
@@ -450,13 +448,10 @@ int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
     if (md_info == NULL) {
         MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_BAD_INPUT_DATA);
     }
-    mdlen = mbedtls_md_get_size(md_info);
-    l = mdlen + ilen;
     mlen = 2 + idlen
         + mbedtls_mpi_size(&ctx->grp.A) + mbedtls_mpi_size(&ctx->grp.B)
         + mbedtls_mpi_size(&ctx->grp.G.X) + mbedtls_mpi_size(&ctx->grp.G.Y)
         + mbedtls_mpi_size(&ctx->Q.X) + mbedtls_mpi_size(&ctx->Q.Y);
-    mlen = mlen > l ? mlen : l;
     if ((m = mbedtls_calloc(1, mlen)) == NULL) {
         MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_ALLOC_FAILED);
     }
@@ -486,10 +481,7 @@ int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
     l = mbedtls_mpi_size(&ctx->Q.Y);
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&ctx->Q.Y, p, l));
     p += l;
-
-    MBEDTLS_MPI_CHK(mbedtls_md(md_info, m, p - m, m));
-    memmove(m + mdlen, input, ilen);
-    MBEDTLS_MPI_CHK(mbedtls_md(md_info, m, mdlen + ilen, z));
+    MBEDTLS_MPI_CHK(mbedtls_md(md_info, m, p - m, z));
 
 cleanup:
     if (m) {
@@ -605,6 +597,12 @@ static const unsigned char sm2_test_ID[] = {            // ALICE123@YAHOO.COM
     0x40, 0x59, 0x41, 0x48, 0x4F, 0x4F, 0x2E, 0x43,
     0x4F, 0x4D,
 };
+static const unsigned char sm2_test_z[] = {
+    0xF4, 0xA3, 0x84, 0x89, 0xE3, 0x2B, 0x45, 0xB6,
+    0xF8, 0x76, 0xE3, 0xAC, 0x21, 0x68, 0xCA, 0x39,
+    0x23, 0x62, 0xDC, 0x8F, 0x23, 0x45, 0x9C, 0x1D,
+    0x11, 0x46, 0xFC, 0x3D, 0xBF, 0xB7, 0xBC, 0x9A,
+};
 static const unsigned char sm2_test_md[] = {
     0xB5, 0x24, 0xF5, 0x52, 0xCD, 0x82, 0xB8, 0xB0,
     0x28, 0x47, 0x6E, 0x00, 0x5C, 0x37, 0x7F, 0xB1,
@@ -716,14 +714,13 @@ int mbedtls_sm2_self_test(int verbose)
     }
 
     if ((ret = mbedtls_sm2_get_z(&ctx, MBEDTLS_MD_SM3,
-                    sm2_test_messagetext, sizeof(sm2_test_messagetext),
                     sm2_test_ID, sizeof(sm2_test_ID), output)) != 0) {
         if (verbose != 0) {
             mbedtls_printf( "failed\n" );
         }
         goto cleanup;
     }
-    if (memcmp(output, sm2_test_md, sizeof(sm2_test_md)) != 0) {
+    if (memcmp(output, sm2_test_z, sizeof(sm2_test_z)) != 0) {
         if (verbose != 0) {
             mbedtls_printf( "check failed\n" );
         }

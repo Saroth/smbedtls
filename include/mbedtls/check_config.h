@@ -114,7 +114,7 @@
 #endif
 
 #if defined(MBEDTLS_SM2_C) &&                                       \
-    ( !defined(MBEDTLS_MD_C) ||                                     \
+    ( !defined(MBEDTLS_SM3_C) ||                                    \
       !defined(MBEDTLS_ECP_C) )
 #error "MBEDTLS_SM2_C defined, but not all prerequisites"
 #endif

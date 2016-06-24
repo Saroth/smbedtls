@@ -12,7 +12,7 @@
 #define mbedtls_printf     printf
 #endif
 
-#if !defined(MBEDTLS_SM2_C) || !defined(MBEDTLS_SM3_C)
+#if !defined(MBEDTLS_SM2_C)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_SM2_C and/or MBEDTLS_SM3_C "
@@ -32,7 +32,7 @@ int main(void)
 
     return (0);
 }
-#endif /* MBEDTLS_SM2_C && MBEDTLS_SM3_C */
+#endif /* MBEDTLS_SM2_C */
 
 
 

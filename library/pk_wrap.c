@@ -411,11 +411,14 @@ static int sm2_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
+    mbedtls_md_type_t md_type = md_alg;
+
     if( hash_len != mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) )
             || sig_len <= 0 )
         return( MBEDTLS_ERR_ECP_VERIFY_FAILED );
+    md_type = MBEDTLS_SM2_SPECIFIC_MD_ALGORITHM;
 
-    return mbedtls_sm2_verify( (mbedtls_sm2_context *) ctx, md_alg, hash, sig );
+    return mbedtls_sm2_verify( (mbedtls_sm2_context *) ctx, md_type, hash, sig );
 }
 
 static int sm2_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
@@ -424,11 +427,13 @@ static int sm2_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
+    mbedtls_md_type_t md_type = md_alg;
 
     if( hash_len != mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) )
             || sig_len == NULL )
         return( MBEDTLS_ERR_SM2_BAD_INPUT_DATA );
-    ret = mbedtls_sm2_sign( (mbedtls_sm2_context *) ctx, md_alg, hash, sig,
+    md_type = MBEDTLS_SM2_SPECIFIC_MD_ALGORITHM;
+    ret = mbedtls_sm2_sign( (mbedtls_sm2_context *) ctx, md_type, hash, sig,
             f_rng, p_rng );
     if( ret == 0 )
         *sig_len = ( ((mbedtls_sm2_context *) ctx)->grp.nbits + 7 ) / 8 * 2;
