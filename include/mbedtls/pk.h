@@ -44,6 +44,10 @@
 #include "ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_SM2_C)
+#include "sm2.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline

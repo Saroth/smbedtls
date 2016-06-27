@@ -20,6 +20,7 @@
 #define MBEDTLS_ERR_SM2_BAD_SIGNATURE       -0x4A80 /*!< Invalid signature */
 
 #define MBEDTLS_SM2_SPECIFIC_MD_ALGORITHM   MBEDTLS_MD_SM3
+#define MBEDTLS_SM2_DEFAULT_ID              "1234567812345678"
 
 /**
  *  Enum for the point conversion form as defined in X9.62 (ECDSA)

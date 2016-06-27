@@ -267,6 +267,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)
     "MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED",
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_GM_ENABLED)
+    "MBEDTLS_KEY_EXCHANGE_GM_ENABLED",
+#endif /* MBEDTLS_KEY_EXCHANGE_GM_ENABLED */
 #if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
     "MBEDTLS_PK_PARSE_EC_EXTENDED",
 #endif /* MBEDTLS_PK_PARSE_EC_EXTENDED */
@@ -603,6 +606,15 @@ static const char *features[] = {
 #if defined(MBEDTLS_XTEA_C)
     "MBEDTLS_XTEA_C",
 #endif /* MBEDTLS_XTEA_C */
+#if defined(MBEDTLS_SM2_C)
+    "MBEDTLS_SM2_C",
+#endif /* MBEDTLS_SM2_C */
+#if defined(MBEDTLS_SM3_C)
+    "MBEDTLS_SM3_C",
+#endif /* MBEDTLS_SM3_C */
+#if defined(MBEDTLS_SM4_C)
+    "MBEDTLS_SM4_C",
+#endif /* MBEDTLS_SM4_C */
 #endif /* MBEDTLS_VERSION_FEATURES */
     NULL
 };

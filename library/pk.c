@@ -38,6 +38,9 @@
 #if defined(MBEDTLS_ECDSA_C)
 #include "mbedtls/ecdsa.h"
 #endif
+#if defined(MBEDTLS_SM2_C)
+#include "mbedtls/sm2.h"
+#endif
 
 #include <limits.h>
 #include <stdint.h>

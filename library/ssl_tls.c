@@ -7105,7 +7105,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
     mbedtls_ecdh_free( &handshake->ecdh_ctx );
 #endif
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_SM2_C)
     /* explicit void pointer cast for buggy MS compiler */
     mbedtls_free( (void *) handshake->curves );
 #endif
@@ -7490,6 +7490,11 @@ unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk )
     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECDSA ) )
         return( MBEDTLS_SSL_SIG_ECDSA );
 #endif
+#warning "@TODO: Need definitions"
+// #if defined(MBEDTLS_SM2_C)
+//     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_SM2 ) )
+//         return( MBEDTLS_SSL_SIG_SM2 );
+// #endif
     return( MBEDTLS_SSL_SIG_ANON );
 }
 
@@ -7518,6 +7523,11 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )
         case MBEDTLS_SSL_SIG_ECDSA:
             return( MBEDTLS_PK_ECDSA );
 #endif
+#warning "@TODO: Need definitions"
+// #if defined(MBEDTLS_SM2_C)
+//         case MBEDTLS_SSL_SIG_SM2:
+//             return( MBEDTLS_PK_SM2 );
+// #endif
         default:
             return( MBEDTLS_PK_NONE );
     }
