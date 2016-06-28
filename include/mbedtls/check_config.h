@@ -119,6 +119,17 @@
 #error "MBEDTLS_SM2_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE_SM2_ENABLED) &&                    \
+    !defined(MBEDTLS_SM2_C)
+#error "MBEDTLS_KEY_EXCHANGE_SM2DHE_SM2_ENABLED defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_SM2DHE_SM2_ENABLED) &&             \
+    ( !defined(MBEDTLS_SM2_C) ||                                    \
+      !defined(MBEDTLS_ECDH_C) )
+#error "MBEDTLS_KEY_EXCHANGE_SM2DHE_SM2_ENABLED defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_ENTROPY_C) && (!defined(MBEDTLS_SHA512_C) &&      \
                                     !defined(MBEDTLS_SHA256_C))
 #error "MBEDTLS_ENTROPY_C defined, but not all prerequisites"

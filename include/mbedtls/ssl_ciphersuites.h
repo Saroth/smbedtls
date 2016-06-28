@@ -233,15 +233,15 @@ extern "C" {
  * Ref: <SSL VPN specification> Table 2
  * SM2 implement the ECP and ECDHE, and SM9 implement the IBC and IBSDH.
  */
-#define MBEDTLS_GM_ECDHE_WITH_SM1_CBC_SM3               0xE001
-#define MBEDTLS_GM_ECP_WITH_SM1_CBC_SM3                 0xE003
-#define MBEDTLS_GM_IBSDH_WITH_SM1_CBC_SM3               0xE005
+#define MBEDTLS_GM_SM2DHE_SM2_WITH_SM1_CBC_SM3          0xE001
+#define MBEDTLS_GM_SM2_WITH_SM1_CBC_SM3                 0xE003
+#define MBEDTLS_GM_IBSDH_IBC_WITH_SM1_CBC_SM3           0xE005
 #define MBEDTLS_GM_IBC_WITH_SM1_CBC_SM3                 0xE007
 #define MBEDTLS_GM_RSA_WITH_SM1_CBC_SM3                 0xE009
 #define MBEDTLS_GM_RSA_WITH_SM1_CBC_SHA1                0xE00A
-#define MBEDTLS_GM_ECDHE_WITH_SM4_CBC_SM3               0xE011
-#define MBEDTLS_GM_ECP_WITH_SM4_CBC_SM3                 0xE013
-#define MBEDTLS_GM_IBSDH_WITH_SM4_CBC_SM3               0xE015
+#define MBEDTLS_GM_SM2DHE_SM2_WITH_SM4_CBC_SM3          0xE011
+#define MBEDTLS_GM_SM2_WITH_SM4_CBC_SM3                 0xE013
+#define MBEDTLS_GM_IBSDH_IBC_WITH_SM4_CBC_SM3           0xE015
 #define MBEDTLS_GM_IBC_WITH_SM4_CBC_SM3                 0xE017
 #define MBEDTLS_GM_RSA_WITH_SM4_CBC_SM3                 0xE019
 #define MBEDTLS_GM_RSA_WITH_SM4_CBC_SHA1                0xE01A
@@ -262,7 +262,9 @@ typedef enum {
     MBEDTLS_KEY_EXCHANGE_ECDH_RSA,
     MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA,
     MBEDTLS_KEY_EXCHANGE_SM2,
-    MBEDTLS_KEY_EXCHANGE_ECDHE_SM2,
+    MBEDTLS_KEY_EXCHANGE_SM2DHE_SM2,
+    MBEDTLS_KEY_EXCHANGE_IBC,
+    MBEDTLS_KEY_EXCHANGE_IBSDH_IBC,
 } mbedtls_key_exchange_type_t;
 
 /* Key exchanges using a certificate */
@@ -272,7 +274,7 @@ typedef enum {
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)       || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)      || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)    || \
 #define MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED
 #endif
 
@@ -283,7 +285,8 @@ typedef enum {
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)    || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
-    defined(MBEDTLS_KEY_EXCHANGE_GM_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_SM2_ENABLED)           || \
+    defined(MBEDTLS_KEY_EXCHANGE_SM2DHE_SM2_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED
 #endif
 

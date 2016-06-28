@@ -2574,6 +2574,34 @@
 #define MBEDTLS_SM4_C
 
 /**
+ * \def MBEDTLS_KEY_EXCHANGE_SM2_ENABLED
+ *
+ * Enable the SM2 based ciphersuite modes in SSL / TLS.
+ *
+ * Requires: MBEDTLS_SM2_C
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      MBEDTLS_GM_SM2_WITH_SM1_CBC_SM3
+ *      MBEDTLS_GM_SM2_WITH_SM4_CBC_SM3
+ */
+#define MBEDTLS_KEY_EXCHANGE_SM2_ENABLED
+
+/**
+ * \def MBEDTLS_KEY_EXCHANGE_SM2DHE_SM2_ENABLED
+ *
+ * Enable the SM2DHE-SM2 based ciphersuite modes in SSL / TLS.
+ *
+ * Requires: MBEDTLS_SM2_C, MBEDTLS_ECDH_C(@TODO: Need SM2DHE?)
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      MBEDTLS_GM_SM2DHE_SM2_WITH_SM1_CBC_SM3
+ *      MBEDTLS_GM_SM2DHE_SM2_WITH_SM4_CBC_SM3
+ */
+#define MBEDTLS_KEY_EXCHANGE_SM2DHE_SM2_ENABLED
+
+/**
  * \def MBEDTLS_KEY_EXCHANGE_GM_ENABLED
  *
  * Enable the GM ciphers based ciphersuite modes in SSL / TLS.
@@ -2582,15 +2610,15 @@
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
- *      MBEDTLS_GM_ECDHE_WITH_SM1_CBC_SM3
- *      MBEDTLS_GM_ECP_WITH_SM1_CBC_SM3
- *      MBEDTLS_GM_IBSDH_WITH_SM1_CBC_SM3
+ *      MBEDTLS_GM_SM2DHE_SM2_WITH_SM1_CBC_SM3
+ *      MBEDTLS_GM_SM2_WITH_SM1_CBC_SM3
+ *      MBEDTLS_GM_IBSDH_IBC_WITH_SM1_CBC_SM3
  *      MBEDTLS_GM_IBC_WITH_SM1_CBC_SM3
  *      MBEDTLS_GM_RSA_WITH_SM1_CBC_SM3
  *      MBEDTLS_GM_RSA_WITH_SM1_CBC_SHA1
- *      MBEDTLS_GM_ECDHE_WITH_SM4_CBC_SM3
- *      MBEDTLS_GM_ECP_WITH_SM4_CBC_SM3
- *      MBEDTLS_GM_IBSDH_WITH_SM4_CBC_SM3
+ *      MBEDTLS_GM_SM2DHE_SM2_WITH_SM4_CBC_SM3
+ *      MBEDTLS_GM_SM2_WITH_SM4_CBC_SM3
+ *      MBEDTLS_GM_IBSDH_IBC_WITH_SM4_CBC_SM3
  *      MBEDTLS_GM_IBC_WITH_SM4_CBC_SM3
  *      MBEDTLS_GM_RSA_WITH_SM4_CBC_SM3
  *      MBEDTLS_GM_RSA_WITH_SM4_CBC_SHA1

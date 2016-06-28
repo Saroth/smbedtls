@@ -7490,11 +7490,10 @@ unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk )
     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECDSA ) )
         return( MBEDTLS_SSL_SIG_ECDSA );
 #endif
-#warning "@TODO: Need definitions"
-// #if defined(MBEDTLS_SM2_C)
-//     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_SM2 ) )
-//         return( MBEDTLS_SSL_SIG_SM2 );
-// #endif
+#if defined(MBEDTLS_SM2_C)
+    if( mbedtls_pk_can_do( pk, MBEDTLS_PK_SM2 ) )
+        return( MBEDTLS_SSL_SIG_SM2 );
+#endif
     return( MBEDTLS_SSL_SIG_ANON );
 }
 
@@ -7523,11 +7522,10 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )
         case MBEDTLS_SSL_SIG_ECDSA:
             return( MBEDTLS_PK_ECDSA );
 #endif
-#warning "@TODO: Need definitions"
-// #if defined(MBEDTLS_SM2_C)
-//         case MBEDTLS_SSL_SIG_SM2:
-//             return( MBEDTLS_PK_SM2 );
-// #endif
+#if defined(MBEDTLS_SM2_C)
+        case MBEDTLS_SSL_SIG_SM2:
+            return( MBEDTLS_PK_SM2 );
+#endif
         default:
             return( MBEDTLS_PK_NONE );
     }
@@ -7612,6 +7610,10 @@ mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash )
         case MBEDTLS_SSL_HASH_SHA512:
             return( MBEDTLS_MD_SHA512 );
 #endif
+#if defined(MBEDTLS_SM3_C)
+        case MBEDTLS_SSL_HASH_SM3:
+            return( MBEDTLS_MD_SM3 );
+#endif
         default:
             return( MBEDTLS_MD_NONE );
     }
@@ -7643,6 +7645,10 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
             return( MBEDTLS_SSL_HASH_SHA384 );
         case MBEDTLS_MD_SHA512:
             return( MBEDTLS_SSL_HASH_SHA512 );
+#endif
+#if defined(MBEDTLS_SM3_C)
+        case MBEDTLS_MD_SM3:
+            return( MBEDTLS_SSL_HASH_SM3 );
 #endif
         default:
             return( MBEDTLS_SSL_HASH_NONE );

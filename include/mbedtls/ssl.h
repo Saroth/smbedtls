@@ -117,6 +117,9 @@
 #define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
 
+#define MBEDTLS_GM_MAJOR_VERSION_1              4   
+#define MBEDTLS_GM_MINOR_VERSION_1              1   /*!< GM-TLS v1.1 */
+
 #define MBEDTLS_SSL_TRANSPORT_STREAM            0   /*!< TLS      */
 #define MBEDTLS_SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
 
@@ -245,10 +248,12 @@
 #define MBEDTLS_SSL_HASH_SHA256              4
 #define MBEDTLS_SSL_HASH_SHA384              5
 #define MBEDTLS_SSL_HASH_SHA512              6
+#define MBEDTLS_SSL_HASH_SM3                 7      /* Nonstandard */
 
 #define MBEDTLS_SSL_SIG_ANON                 0
 #define MBEDTLS_SSL_SIG_RSA                  1
 #define MBEDTLS_SSL_SIG_ECDSA                3
+#define MBEDTLS_SSL_SIG_SM2                  4      /* Nonstandard */
 
 /*
  * Client Certificate Types
@@ -256,6 +261,7 @@
  */
 #define MBEDTLS_SSL_CERT_TYPE_RSA_SIGN       1
 #define MBEDTLS_SSL_CERT_TYPE_ECDSA_SIGN    64
+#define MBEDTLS_SSL_CERT_TYPE_SM2_SIGN      128     /* Nonstandard */
 
 /*
  * Message, alert and handshake types
