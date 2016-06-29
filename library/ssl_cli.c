@@ -164,7 +164,8 @@ static void ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
 /*
  * Only if we handle at least one key exchange that needs signatures.
  */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+#if ( defined(MBEDTLS_SSL_PROTO_TLS1_2) || \
+        defined(MBEDTLS_GM_PROTO_TLS1_1) ) && \
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
 static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
                                                 unsigned char *buf,
@@ -180,7 +181,8 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
-    if( ssl->conf->max_minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( ssl->conf->max_minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 &&
+            ssl->conf->max_major_ver < MBEDTLS_GM_MAJOR_VERSION_1 )
         return;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding signature_algorithms extension" ) );
@@ -253,7 +255,8 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
     *olen = 6 + sig_alg_len;
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
+#endif /* ( MBEDTLS_SSL_PROTO_TLS1_2 ||
+          MBEDTLS_GM_PROTO_TLS1_1 ) &&
           MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_SM2_C)
@@ -919,7 +922,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+#if ( defined(MBEDTLS_SSL_PROTO_TLS1_2) || \
+        defined(MBEDTLS_GM_PROTO_TLS1_1) ) && \
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     ssl_write_signature_algorithms_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
@@ -1970,7 +1974,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
     if( len_bytes == 2 )
     {
         ssl->out_msg[offset+0] = (unsigned char)( *olen >> 8 );
@@ -1984,7 +1988,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
@@ -1998,8 +2002,9 @@ static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
     *md_alg = MBEDTLS_MD_NONE;
     *pk_alg = MBEDTLS_PK_NONE;
 
-    /* Only in TLS 1.2 */
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
+    /* Only in TLS 1.2 and GM-TLS 1.1*/
+    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 &&
+            ssl->major_ver < MBEDTLS_GM_MAJOR_VERSION_1 )
     {
         return( 0 );
     }
@@ -2046,7 +2051,7 @@ static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 || MBEDTLS_GM_PROTO_TLS1_1 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
@@ -2246,8 +2251,9 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
         /*
          * Handle the digitally-signed structure
          */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 ||
+                ssl->major_ver == MBEDTLS_GM_MAJOR_VERSION_1 )
         {
             if( ssl_parse_signature_algorithm( ssl, &p, end,
                                                &md_alg, &pk_alg ) != 0 )
@@ -2263,10 +2269,11 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
             }
         }
         else
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 || MBEDTLS_GM_PROTO_TLS1_1 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1)
-        if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
+    defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_GM_PROTO_TLS1_1)
+        if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 &&
+                ssl->major_ver < MBEDTLS_GM_MAJOR_VERSION_1 )
         {
             pk_alg = mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
 
@@ -2306,7 +2313,7 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
          * Compute the hash that has been signed
          */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+    defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_GM_PROTO_TLS1_1)
         if( md_alg == MBEDTLS_MD_NONE )
         {
             mbedtls_md5_context mbedtls_md5;
@@ -2345,9 +2352,9 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
-          MBEDTLS_SSL_PROTO_TLS1_1 */
+          MBEDTLS_SSL_PROTO_TLS1_1 || MBEDTLS_GM_PROTO_TLS1_1 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
         if( md_alg != MBEDTLS_MD_NONE )
         {
             mbedtls_md_context_t ctx;
@@ -2379,7 +2386,7 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
-          MBEDTLS_SSL_PROTO_TLS1_2 */
+          MBEDTLS_SSL_PROTO_TLS1_2 || MBEDTLS_GM_PROTO_TLS1_1 */
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -2561,8 +2568,9 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
         p++;
     }
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 ||
+            ssl->major_ver == MBEDTLS_GM_MAJOR_VERSION_1 )
     {
         /* Ignored, see comments about hash in write_certificate_verify */
         // TODO: should check the signature part against our pk_key though
@@ -2604,7 +2612,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 
         n += 2 + sig_alg_len;
     }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 || MBEDTLS_GM_PROTO_TLS1_1 */
 
     /* Ignore certificate_authorities, we only have one cert anyway */
     // TODO: should not send cert if no CA matches
@@ -2982,8 +2990,9 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     ssl->handshake->calc_verify( ssl, hash );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
+    defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_GM_PROTO_TLS1_1)
+    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 &&
+            ssl->major_ver < MBEDTLS_GM_MAJOR_VERSION_1 )
     {
         /*
          * digitally-signed struct {
@@ -3012,9 +3021,10 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
-          MBEDTLS_SSL_PROTO_TLS1_1 */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+          MBEDTLS_SSL_PROTO_TLS1_1 || MBEDTLS_GM_PROTO_TLS1_1 */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 ||
+            ssl->major_ver == MBEDTLS_GM_MAJOR_VERSION_1 )
     {
         /*
          * digitally-signed struct {
@@ -3049,7 +3059,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         offset = 2;
     }
     else
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 || MBEDTLS_GM_PROTO_TLS1_1 */
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );

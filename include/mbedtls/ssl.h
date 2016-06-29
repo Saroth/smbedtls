@@ -261,7 +261,8 @@
  */
 #define MBEDTLS_SSL_CERT_TYPE_RSA_SIGN       1
 #define MBEDTLS_SSL_CERT_TYPE_ECDSA_SIGN    64
-#define MBEDTLS_SSL_CERT_TYPE_SM2_SIGN      128     /* Nonstandard */
+#define MBEDTLS_SSL_CERT_TYPE_SM2_SIGN      72      /* Nonstandard */
+#define MBEDTLS_SSL_CERT_TYPE_IBC_SIGN      80      /* Nonstandard */
 
 /*
  * Message, alert and handshake types

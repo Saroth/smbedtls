@@ -2574,6 +2574,17 @@
 #define MBEDTLS_SM4_C
 
 /**
+ * \def MBEDTLS_GM_PROTO_TLS1_1
+ *
+ * Enable support for GM-TLS 1.1 (no GM-DTLS support temporarily).
+ *
+ * Requires:
+ *
+ * Comment this macro to disable support for GM-TLS 1.1/GM-DTLS 1.1
+ */
+#define MBEDTLS_GM_PROTO_TLS1_1
+
+/**
  * \def MBEDTLS_KEY_EXCHANGE_SM2_ENABLED
  *
  * Enable the SM2 based ciphersuite modes in SSL / TLS.

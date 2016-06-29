@@ -124,12 +124,6 @@ typedef enum
  */
 static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 {
-#if defined(MBEDTLS_ECP_DP_SM2P256R1_ENABLED)
-    { MBEDTLS_ECP_DP_SM2P256R1,    29,     256,    "sm2p256r1"         },
-#endif
-#if defined(MBEDTLS_ECP_DP_SM2P256T1_ENABLED)
-    { MBEDTLS_ECP_DP_SM2P256T1,    30,     256,    "sm2p256t1"         },
-#endif
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
     { MBEDTLS_ECP_DP_SECP521R1,    25,     521,    "secp521r1"         },
 #endif
@@ -162,6 +156,12 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
     { MBEDTLS_ECP_DP_SECP192K1,    18,     192,    "secp192k1"         },
+#endif
+#if defined(MBEDTLS_ECP_DP_SM2P256R1_ENABLED)
+    { MBEDTLS_ECP_DP_SM2P256R1,    29,     256,    "sm2p256r1"         },
+#endif
+#if defined(MBEDTLS_ECP_DP_SM2P256T1_ENABLED)
+    { MBEDTLS_ECP_DP_SM2P256T1,    30,     256,    "sm2p256t1"         },
 #endif
     { MBEDTLS_ECP_DP_NONE,          0,     0,      NULL                },
 };
