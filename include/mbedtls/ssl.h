@@ -117,7 +117,7 @@
 #define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
 
-#define MBEDTLS_GM_MAJOR_VERSION_1              4   
+#define MBEDTLS_GM_MAJOR_VERSION_1              4
 #define MBEDTLS_GM_MINOR_VERSION_1              1   /*!< GM-TLS v1.1 */
 
 #define MBEDTLS_SSL_TRANSPORT_STREAM            0   /*!< TLS      */

@@ -48,7 +48,12 @@
 #endif
 
 /* Determine minimum supported version */
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
+#else
+#define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_GM_MAJOR_VERSION_1
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
 #define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_0
