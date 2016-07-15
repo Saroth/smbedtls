@@ -320,6 +320,8 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
         pk_alg = MBEDTLS_PK_RSA;
     else if( mbedtls_pk_can_do( ctx->issuer_key, MBEDTLS_PK_ECDSA ) )
         pk_alg = MBEDTLS_PK_ECDSA;
+    else if( mbedtls_pk_can_do( ctx->issuer_key, MBEDTLS_PK_SM2 ) )
+        pk_alg = MBEDTLS_PK_SM2;
     else
         return( MBEDTLS_ERR_X509_INVALID_ALG );
 

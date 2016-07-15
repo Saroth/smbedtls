@@ -503,6 +503,21 @@ int mbedtls_sm2_genkey(mbedtls_sm2_context *ctx, mbedtls_ecp_group_id gid,
 
 #endif /* !MBEDTLS_SM2_ALT */
 
+int mbedtls_sm2_from_keypair(mbedtls_sm2_context *ctx,
+        const mbedtls_ecp_keypair *key)
+{
+    int ret;
+
+    if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &ctx->d, &key->d ) ) != 0 ||
+        ( ret = mbedtls_ecp_copy( &ctx->Q, &key->Q ) ) != 0 )
+    {
+        mbedtls_sm2_free( ctx );
+    }
+
+    return( ret );
+}
+
 void mbedtls_sm2_init(mbedtls_sm2_context *ctx)
 {
     mbedtls_ecp_keypair_init(ctx);

@@ -93,7 +93,8 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA224 ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ) |
-    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SM3 ),
     0xFFFFFFF, /* Any PK alg    */
     0xFFFFFFF, /* Any curve     */
     2048,
@@ -192,7 +193,8 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
 #if defined(MBEDTLS_ECP_C)
     if( pk_alg == MBEDTLS_PK_ECDSA ||
         pk_alg == MBEDTLS_PK_ECKEY ||
-        pk_alg == MBEDTLS_PK_ECKEY_DH )
+        pk_alg == MBEDTLS_PK_ECKEY_DH ||
+        pk_alg == MBEDTLS_PK_SM2 )
     {
         mbedtls_ecp_group_id gid = mbedtls_pk_ec( *pk )->grp.id;
 

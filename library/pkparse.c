@@ -629,7 +629,8 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
     } else
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_C)
-    if( pk_alg == MBEDTLS_PK_ECKEY_DH || pk_alg == MBEDTLS_PK_ECKEY )
+    if( pk_alg == MBEDTLS_PK_ECKEY_DH || pk_alg == MBEDTLS_PK_ECKEY ||
+            pk_alg == MBEDTLS_PK_ECDSA || pk_alg == MBEDTLS_PK_SM2 )
     {
         ret = pk_use_ecparams( &alg_params, &mbedtls_pk_ec( *pk )->grp );
         if( ret == 0 )
@@ -941,7 +942,8 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     } else
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_C)
-    if( pk_alg == MBEDTLS_PK_ECKEY || pk_alg == MBEDTLS_PK_ECKEY_DH )
+    if( pk_alg == MBEDTLS_PK_ECKEY || pk_alg == MBEDTLS_PK_ECKEY_DH ||
+            pk_alg == MBEDTLS_PK_ECDSA || pk_alg == MBEDTLS_PK_SM2 )
     {
         if( ( ret = pk_use_ecparams( &params, &mbedtls_pk_ec( *pk )->grp ) ) != 0 ||
             ( ret = pk_parse_key_sec1_der( mbedtls_pk_ec( *pk ), p, len )  ) != 0 )
@@ -1336,5 +1338,53 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
 
     return( ret );
 }
+
+#if defined(MBEDTLS_ECP_C)
+/*
+ * Change EC info in the PK context to specify type
+ */
+int mbedtls_pk_change_ec_info_from_type( mbedtls_pk_context *pk,
+        mbedtls_pk_type_t pk_alg )
+{
+    int ret = 0;
+    const mbedtls_pk_info_t *pk_info;
+    mbedtls_ecp_keypair *key = mbedtls_pk_ec(*pk);
+
+    if( mbedtls_pk_get_type( pk ) != MBEDTLS_PK_ECKEY )
+        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+    if( ( pk_info = mbedtls_pk_info_from_type( pk_alg ) ) == NULL )
+        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+    mbedtls_pk_init( pk );
+    if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 )
+    {
+        printf("mbedtls_pk_setup failed\n");
+        return( ret );
+    }
+
+#if defined(MBEDTLS_ECDSA_C)
+    if( pk_alg == MBEDTLS_PK_ECDSA )
+    {
+        if( ( ret = mbedtls_ecdsa_from_keypair( mbedtls_pk_ec(*pk), key ) ) )
+            mbedtls_ecdsa_free( mbedtls_pk_ec(*pk) );
+    }
+    else
+#endif /* MBEDTLS_ECDSA_C */
+#if defined(MBEDTLS_SM2_C)
+    if( pk_alg == MBEDTLS_PK_SM2 )
+    {
+        if( ( ret = mbedtls_sm2_from_keypair( mbedtls_pk_ec(*pk), key ) ) )
+            mbedtls_sm2_free( mbedtls_pk_ec(*pk) );
+    }
+    else
+#endif /* MBEDTLS_SM2_C */
+    {
+        ret = MBEDTLS_ERR_PK_INVALID_ALG;
+    }
+
+    mbedtls_ecp_keypair_free(key);
+
+    return ret;
+}
+#endif
 
 #endif /* MBEDTLS_PK_PARSE_C */

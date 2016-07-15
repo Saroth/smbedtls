@@ -142,6 +142,17 @@ int mbedtls_sm2_genkey(mbedtls_sm2_context *ctx, mbedtls_ecp_group_id gid,
         int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 
 /**
+ * \brief           Set an SM2 context from an EC key pair
+ *
+ * \param ctx       SM2 context to set
+ * \param key       EC key to use
+ *
+ * \return          0 on success, or a MBEDTLS_ERR_ECP_XXX code.
+ */
+int mbedtls_sm2_from_keypair(mbedtls_sm2_context *ctx,
+        const mbedtls_ecp_keypair *key);
+
+/**
  * \brief           Initialize context
  *
  * \param ctx       Context to be initialized

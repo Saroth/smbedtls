@@ -513,6 +513,19 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
  * \return          0 if successful, or a specific PK or PEM error code
  */
 int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path );
+
+/**
+ * \brief           Change EC info in the PK context to specify type
+ *
+ * \param ctx       key to be changed
+ * \param pk_alg    PK type to change for.
+ *
+ * \note            On entry, ctx must be initialised with mbedtls_pk_setup().
+ *
+ * \return          0 if successful, or a specific PK or PEM error code
+ */
+int mbedtls_pk_change_ec_info_from_type( mbedtls_pk_context *pk,
+        mbedtls_pk_type_t pk_alg );
 #endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_PK_PARSE_C */
 

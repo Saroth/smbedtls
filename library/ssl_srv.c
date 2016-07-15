@@ -596,7 +596,7 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
 /*
  * Return 0 if the given key uses one of the acceptable curves, -1 otherwise
  */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_SM2_C)
 static int ssl_check_key_curve( mbedtls_pk_context *pk,
                                 const mbedtls_ecp_curve_info **curves )
 {
@@ -612,7 +612,7 @@ static int ssl_check_key_curve( mbedtls_pk_context *pk,
 
     return( -1 );
 }
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_SM2_C */
 
 /*
  * Try picking a certificate for this ciphersuite,
@@ -671,8 +671,8 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
             continue;
         }
 
-#if defined(MBEDTLS_ECDSA_C)
-        if( pk_alg == MBEDTLS_PK_ECDSA &&
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_SM2_C)
+        if( ( pk_alg == MBEDTLS_PK_ECDSA || pk_alg == MBEDTLS_PK_SM2 ) &&
             ssl_check_key_curve( cur->key, ssl->handshake->curves ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: elliptic curve" ) );

@@ -82,6 +82,8 @@ int main( void )
 #define DFL_SELFSIGN            0
 #define DFL_IS_CA               0
 #define DFL_MAX_PATHLEN         -1
+#define DFL_SIGNATURE_ALG       MBEDTLS_PK_NONE
+#define DFL_DIGEST_ALG          MBEDTLS_MD_SHA256
 #define DFL_KEY_USAGE           0
 #define DFL_NS_CERT_TYPE        0
 #define DFL_VERSION             3
@@ -129,6 +131,10 @@ int main( void )
     "    basic_constraints=%%d    default: 1\n"             \
     "                            Possible values: 0, 1\n"   \
     "                            (Considered for v3 only)\n"\
+    "    signature_alg=%%s        default: rsa or ecdsa (dependent on\n"     \
+    "                            ${issuer_key} type), see below\n" \
+    "    digest_alg=%%s           default: SHA256\n"        \
+    "                            see below\n"               \
     "    key_usage=%%s            default: (empty)\n"       \
     "                            Comma-separated-list of values:\n"     \
     "                            digital_signature\n"     \
@@ -175,6 +181,8 @@ struct options
     int basic_constraints;      /* add basic constraints ext to CRT     */
     int version;                /* CRT version                          */
     mbedtls_md_type_t md;       /* Hash used for signing                */
+    mbedtls_pk_type_t signature_alg; /* type of signature algorithm     */
+    mbedtls_md_type_t digest_alg; /* type of message digest algorithm   */
     unsigned char key_usage;    /* key usage flags                      */
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
@@ -234,6 +242,7 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     mbedtls_x509write_crt_init( &crt );
+    mbedtls_x509write_crt_set_md_alg( &crt, opt.digest_alg );
     mbedtls_pk_init( &loaded_issuer_key );
     mbedtls_pk_init( &loaded_subject_key );
     mbedtls_mpi_init( &serial );
@@ -248,6 +257,50 @@ int main( int argc, char *argv[] )
     {
     usage:
         mbedtls_printf( USAGE );
+        mbedtls_printf( " Available signature algorithm types:\n" );
+#if defined(MBEDTLS_RSA_C)
+        mbedtls_printf( "    rsa (default)\n" );
+#endif
+#if defined(MBEDTLS_ECDSA_C)
+        mbedtls_printf( "    ecdsa (default)\n" );
+#endif
+#if defined(MBEDTLS_SM2_C)
+        mbedtls_printf( "    sm2\n" );
+#endif
+        mbedtls_printf( " Available message digest algorithm types:\n" );
+#if defined(MBEDTLS_SM2_C)
+        mbedtls_printf( "    sm2\n");
+#endif
+#if defined(MBEDTLS_MD2_C)
+        mbedtls_printf( "    md2\n" );
+#endif
+#if defined(MBEDTLS_MD4_C)
+        mbedtls_printf( "    md4\n" );
+#endif
+#if defined(MBEDTLS_MD5_C)
+        mbedtls_printf( "    md5\n" );
+#endif
+#if defined(MBEDTLS_SHA1_C)
+        mbedtls_printf( "    sha1\n" );
+#endif
+#if defined(MBEDTLS_SHA224_C)
+        mbedtls_printf( "    sha224\n" );
+#endif
+#if defined(MBEDTLS_SHA256_C)
+        mbedtls_printf( "    sha256 (default)\n");
+#endif
+#if defined(MBEDTLS_SHA384_C)
+        mbedtls_printf( "    sha384\n" );
+#endif
+#if defined(MBEDTLS_SHA512_C)
+        mbedtls_printf( "    sha512\n" );
+#endif
+#if defined(MBEDTLS_RIPEMD160_C)
+        mbedtls_printf( "    ripemd160\n" );
+#endif
+#if defined(MBEDTLS_SM3_C)
+        mbedtls_printf( "    sm3\n" );
+#endif
         ret = 1;
         goto exit;
     }
@@ -267,6 +320,8 @@ int main( int argc, char *argv[] )
     opt.selfsign            = DFL_SELFSIGN;
     opt.is_ca               = DFL_IS_CA;
     opt.max_pathlen         = DFL_MAX_PATHLEN;
+    opt.signature_alg       = DFL_SIGNATURE_ALG;
+    opt.digest_alg          = DFL_DIGEST_ALG;
     opt.key_usage           = DFL_KEY_USAGE;
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
     opt.version             = DFL_VERSION - 1;
@@ -399,6 +454,80 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( "Invalid argument for option %s\n", p );
                 goto usage;
             }
+        }
+        else if( strcmp( p, "signature_alg" ) == 0 )
+        {
+#if defined(MBEDTLS_RSA_C)
+            if( strcmp( q, "rsa" ) == 0 )
+                opt.signature_alg = MBEDTLS_PK_RSA;
+            else
+#endif
+#if defined(MBEDTLS_ECDSA_C)
+            if( strcmp( q, "ecdsa" ) == 0 )
+                opt.signature_alg = MBEDTLS_PK_ECDSA;
+            else
+#endif
+#if defined(MBEDTLS_SM2_C)
+            if( strcmp( q, "sm2" ) == 0 )
+                opt.signature_alg = MBEDTLS_PK_SM2;
+            else
+#endif
+                goto usage;
+        }
+        else if( strcmp( p, "digest_alg" ) == 0 )
+        {
+#if defined(MBEDTLS_MD2_C)
+            if( strcmp( q, "md2" ) == 0 )
+                opt.digest_alg = MBEDTLS_MD_MD2;
+            else
+#endif
+#if defined(MBEDTLS_MD4_C)
+            if( strcmp( q, "md4" ) == 0 )
+                opt.digest_alg = MBEDTLS_MD_MD4;
+            else
+#endif
+#if defined(MBEDTLS_MD5_C)
+            if( strcmp( q, "md5" ) == 0 )
+                opt.digest_alg = MBEDTLS_MD_MD5;
+            else
+#endif
+#if defined(MBEDTLS_SHA1_C)
+            if( strcmp( q, "sha1" ) == 0 )
+                opt.digest_alg = MBEDTLS_MD_SHA1;
+            else
+#endif
+#if defined(MBEDTLS_SHA224_C)
+            if( strcmp( q, "sha224" ) == 0 )
+                opt.digest_alg = MBEDTLS_MD_SHA224;
+            else
+#endif
+#if defined(MBEDTLS_SHA256_C)
+            if( strcmp( q, "sha256" ) == 0 )
+                opt.digest_alg = MBEDTLS_MD_SHA256;
+            else
+#endif
+#if defined(MBEDTLS_SHA384_C)
+            if( strcmp( q, "sha384" ) == 0 )
+                opt.digest_alg = MBEDTLS_MD_SHA384;
+            else
+#endif
+#if defined(MBEDTLS_SHA512_C)
+            if( strcmp( q, "sha512" ) == 0 )
+                opt.digest_alg = MBEDTLS_MD_SHA512;
+            else
+#endif
+#if defined(MBEDTLS_RIPEMD160_C)
+            if( strcmp( q, "ripemd160" ) == 0 )
+                opt.digest_alg = MBEDTLS_MD_RIPEMD160;
+            else
+#endif
+#if defined(MBEDTLS_SM3_C)
+            if( strcmp( q, "sm3" ) == 0 )
+                opt.digest_alg = MBEDTLS_MD_SM3;
+            else
+#endif
+                goto usage;
+            mbedtls_x509write_crt_set_md_alg( &crt, opt.digest_alg );
         }
         else if( strcmp( p, "key_usage" ) == 0 )
         {
@@ -602,6 +731,30 @@ int main( int argc, char *argv[] )
                         "returned -x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
+#if defined(MBEDTLS_ECP_C)
+    if ( opt.signature_alg != MBEDTLS_PK_NONE &&
+            mbedtls_pk_can_do( &loaded_issuer_key, opt.signature_alg ) == 0 )
+    {
+#if defined(MBEDTLS_SM2_C)
+        if( opt.signature_alg == MBEDTLS_PK_SM2 )
+        {
+            if( ( ret = mbedtls_pk_change_ec_info_from_type( &loaded_issuer_key,
+                            opt.signature_alg ) ) ) {
+                mbedtls_strerror( ret, buf, 1024 );
+                mbedtls_printf( " failed\n  !  "
+                        "mbedtls_pk_change_ec_info_from_type returned -x%02x"
+                        " - %s\n\n", -ret, buf );
+                goto exit;
+            }
+        }
+        else
+#endif /* MBEDTLS_RSA_C */
+        {
+            mbedtls_printf( " failed\n  !  Bad signature algorithm type\n\n" );
+            goto exit;
+        }
+    }
+#endif /* MBEDTLS_ECP_C */
 
     // Check if key and issuer certificate match
     //

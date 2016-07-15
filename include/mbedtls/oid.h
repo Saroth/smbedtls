@@ -380,6 +380,57 @@
  *   ecdsa-with-SHA2(3) 4 } */
 #define MBEDTLS_OID_ECDSA_SHA512            MBEDTLS_OID_ANSI_X9_62_SIG_SHA2 "\x04"
 
+/*
+ * GM algorithms identifiers, from (GB/T 30277-2013) Information security
+ *      technology - Public key infrastructures - Certification
+ *      authentication institution identity code specification, appendix A.
+ */
+#define MBEDTLS_OID_COUNTRY_CN                  "\x81\x1c"      /* {cn(156)} */
+#define MBEDTLS_OID_ORG_SCA                     "\xcf\x55"      /* {state-cryptography-administration(10197)} */
+#define MBEDTLS_OID_GM_ALGORITHM                "\x01"          /* {gm(1)} */
+#define MBEDTLS_OID_GM                          MBEDTLS_OID_ISO_MEMBER_BODIES \
+    MBEDTLS_OID_COUNTRY_CN MBEDTLS_OID_ORG_SCA MBEDTLS_OID_GM_ALGORITHM
+
+#define MBEDTLS_OID_GM_SM2                  MBEDTLS_OID_GM "\x82\x2d"   /* {sm2(301)} */
+#define MBEDTLS_OID_GM_SM3                  MBEDTLS_OID_GM "\x83\x11"   /* {sm3(401)} */
+#define MBEDTLS_OID_GM_SM4                  MBEDTLS_OID_GM "\x68"       /* {sm4(104)} */
+
+/* sm2p256r1 OBJECT IDENTIFIER ::= {
+ * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2(301) } */
+#define MBEDTLS_OID_EC_SM2P256R1            MBEDTLS_OID_GM_SM2
+/* sm2-with-sm3 OBJECT IDENTIFIER ::= {
+ * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sm3(501) } */
+#define MBEDTLS_OID_SM2_SM3                 MBEDTLS_OID_GM_SM2 "\x83\x75"
+/* sm2-with-sha1 OBJECT IDENTIFIER ::= {
+ * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sha1(502) } */
+#define MBEDTLS_OID_SM2_SHA1                MBEDTLS_OID_GM_SM2 "\x83\x76"
+/* sm2-with-sha256 OBJECT IDENTIFIER ::= {
+ * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sha256(503) } */
+#define MBEDTLS_OID_SM2_SHA256              MBEDTLS_OID_GM_SM2 "\x83\x77"
+/* sm2-with-sha512 OBJECT IDENTIFIER ::= {
+ * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sha512(504) } */
+#define MBEDTLS_OID_SM2_SHA512              MBEDTLS_OID_GM_SM2 "\x83\x78"
+/* sm2-with-sha224 OBJECT IDENTIFIER ::= {
+ * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sha224(505) } */
+#define MBEDTLS_OID_SM2_SHA224              MBEDTLS_OID_GM_SM2 "\x83\x79"
+/* sm2-with-sha384 OBJECT IDENTIFIER ::= {
+ * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sha384(506) } */
+#define MBEDTLS_OID_SM2_SHA384              MBEDTLS_OID_GM_SM2 "\x83\x7A"
+
+/* sm3 OBJECT IDENTIFIER ::= {
+ * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm3(401) 1 } */
+#define MBEDTLS_OID_GM_SM3_ECB              MBEDTLS_OID_GM_SM3 "\x01"
+/* sm3-hmac OBJECT IDENTIFIER ::= {
+ * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm3(401) 2 } */
+#define MBEDTLS_OID_GM_SM3_CBC              MBEDTLS_OID_GM_SM3 "\x02"
+
+/* sm4-ecb OBJECT IDENTIFIER ::= {
+ * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm4(104) 1 } */
+#define MBEDTLS_OID_GM_SM4_ECB              MBEDTLS_OID_GM_SM4 "\x01"
+/* sm4-cbc OBJECT IDENTIFIER ::= {
+ * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm4(104) 2 } */
+#define MBEDTLS_OID_GM_SM4_CBC              MBEDTLS_OID_GM_SM4 "\x02"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
