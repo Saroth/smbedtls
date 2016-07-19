@@ -626,6 +626,9 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
         mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
     uint32_t flags;
 
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "ciphersuite key_exchange:%#x, pk_type:%#x",
+                ciphersuite_info->key_exchange, pk_alg ) );
+
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_key_cert != NULL )
         list = ssl->handshake->sni_key_cert;
@@ -3170,7 +3173,7 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
                                     size_t pms_offset )
 {
     int ret;
-    size_t len = mbedtls_pk_get_len( mbedtls_ssl_own_key( ssl ) );
+    size_t len;
     unsigned char *pms = ssl->handshake->premaster + pms_offset;
     unsigned char ver[2];
     unsigned char fake_pms[48], peer_pms[48];
@@ -3178,9 +3181,11 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     size_t i, peer_pmslen;
     unsigned int diff;
 
-    if( ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_RSA ) )
+    ssl->handshake->pmslen = 48;
+    if( mbedtls_pk_cipherlen_helper( mbedtls_ssl_own_key( ssl ),
+                ssl->handshake->pmslen, &len ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no RSA private key" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate key type mismatch" ) );
         return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
     }
 
@@ -3243,7 +3248,6 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-    ssl->handshake->pmslen = 48;
 
     /* mask = diff ? 0xff : 0x00 using bit operations to avoid branches */
     /* MSVC has a warning about unary minus on unsigned, but this is

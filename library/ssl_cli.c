@@ -1971,7 +1971,9 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
      * Now write it out, encrypted
      */
     if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk,
-                MBEDTLS_PK_RSA ) )
+                MBEDTLS_PK_RSA ) &&
+            ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk,
+                MBEDTLS_PK_SM2 ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate key type mismatch" ) );
         return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );

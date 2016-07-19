@@ -187,7 +187,7 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY ||
             mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECDSA ||
-            mbedtls_pk_get_type( key ) == MBEDTLS_PK_SM2  )
+            mbedtls_pk_get_type( key ) == MBEDTLS_PK_SM2 )
     {
         MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, mbedtls_pk_ec( *key ) ) );
     }

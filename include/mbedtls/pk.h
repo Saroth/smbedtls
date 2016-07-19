@@ -433,6 +433,19 @@ const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
  */
 mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
 
+
+/**
+ * \brief           Helper for get length of cipher text that encrypted by public key
+ *
+ * \param ctx       Context to use
+ * \param plain_len Size of plain text
+ * \param cipher_len size of cipher text
+ *
+ * \return          0 if successful, or a specific PK error code
+ */
+size_t mbedtls_pk_cipherlen_helper( const mbedtls_pk_context *ctx,
+        size_t plain_len, size_t *cipher_len );
+
 #if defined(MBEDTLS_PK_PARSE_C)
 /** \ingroup pk_module */
 /**
@@ -514,19 +527,21 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
  */
 int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path );
 
+#endif /* MBEDTLS_FS_IO */
+
 /**
- * \brief           Change EC info in the PK context to specify type
+ * \brief           Change key to specify algorithm type
  *
  * \param ctx       key to be changed
  * \param pk_alg    PK type to change for.
  *
  * \note            On entry, ctx must be initialised with mbedtls_pk_setup().
+ *                  Usually use it after mbedtls_pk_parse_key(file).
  *
  * \return          0 if successful, or a specific PK or PEM error code
  */
-int mbedtls_pk_change_ec_info_from_type( mbedtls_pk_context *pk,
-        mbedtls_pk_type_t pk_alg );
-#endif /* MBEDTLS_FS_IO */
+int mbedtls_pk_change_key_type( mbedtls_pk_context *pk, mbedtls_pk_type_t pk_alg );
+
 #endif /* MBEDTLS_PK_PARSE_C */
 
 #if defined(MBEDTLS_PK_WRITE_C)

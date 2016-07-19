@@ -28,13 +28,13 @@
 typedef enum {
     /** the point is encoded as z||x, where the octet z specifies
      *          *  which solution of the quadratic equation y is  */
-    POINT_CONVERSION_COMPRESSED = 2,
+    MBEDTLS_ECP_POINT_CONVERSION_COMPRESSED = 2,
     /** the point is encoded as z||x||y, where z is the octet 0x02  */
-    POINT_CONVERSION_UNCOMPRESSED = 4,
+    MBEDTLS_ECP_POINT_CONVERSION_UNCOMPRESSED = 4,
     /** the point is encoded as z||x||y, where the octet z specifies
      *          *  which solution of the quadratic equation y is  */
-    POINT_CONVERSION_HYBRID = 6
-} point_conversion_form_t;
+    MBEDTLS_ECP_POINT_CONVERSION_HYBRID = 6
+} mbedtls_ecp_point_conversion_form_t;
 
 #ifdef __cplusplus
 extern "C" {

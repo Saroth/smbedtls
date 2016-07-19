@@ -59,7 +59,7 @@ int main( void )
 #define DFL_DEBUG_LEVEL         0
 #define DFL_OUTPUT_FILENAME     "cert.req"
 #define DFL_SUBJECT_NAME        "CN=Cert,O=mbed TLS,C=UK"
-#define DFL_SIGNATURE_ALG       MBEDTLS_PK_NONE
+#define DFL_PK_ALG              MBEDTLS_PK_NONE
 #define DFL_KEY_USAGE           0
 #define DFL_NS_CERT_TYPE        0
 
@@ -70,8 +70,9 @@ int main( void )
     "    debug_level=%%d      default: 0 (disabled)\n"  \
     "    output_file=%%s      default: cert.req\n"      \
     "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
-    "    signature_alg=%%s    default: rsa or ecdsa (dependent on\n"     \
-    "                        ${filename} type), see below\n" \
+    "    pk_alg=%%s           default: rsa or ecdsa (dependent on\n"    \
+    "                        ${subject_key} type)\n"    \
+    "                        Available algorithm see below\n"       \
     "    key_usage=%%s        default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          digital_signature\n"     \
@@ -101,7 +102,7 @@ struct options
     int debug_level;            /* level of debugging                   */
     const char *output_file;    /* where to store the constructed key file  */
     const char *subject_name;   /* subject name for certificate request */
-    mbedtls_pk_type_t signature_alg; /* type of signature algorithm     */
+    mbedtls_pk_type_t pk_alg;   /* type of signature algorithm          */
     unsigned char key_usage;    /* key usage flags                      */
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
@@ -178,7 +179,7 @@ int main( int argc, char *argv[] )
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.output_file         = DFL_OUTPUT_FILENAME;
     opt.subject_name        = DFL_SUBJECT_NAME;
-    opt.signature_alg       = DFL_SIGNATURE_ALG;
+    opt.pk_alg              = DFL_PK_ALG;
     opt.key_usage           = DFL_KEY_USAGE;
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
 
@@ -204,23 +205,15 @@ int main( int argc, char *argv[] )
         {
             opt.subject_name = q;
         }
-        else if( strcmp( p, "signature_alg" ) == 0 )
+        else if( strcmp( p, "pk_alg" ) == 0 )
         {
-#if defined(MBEDTLS_RSA_C)
             if( strcmp( q, "rsa" ) == 0 )
-                opt.signature_alg = MBEDTLS_PK_RSA;
+                opt.pk_alg = MBEDTLS_PK_RSA;
+            else if( strcmp( q, "ecdsa" ) == 0 )
+                opt.pk_alg = MBEDTLS_PK_ECDSA;
+            else if( strcmp( q, "sm2" ) == 0 )
+                opt.pk_alg = MBEDTLS_PK_SM2;
             else
-#endif
-#if defined(MBEDTLS_ECDSA_C)
-            if( strcmp( q, "ecdsa" ) == 0 )
-                opt.signature_alg = MBEDTLS_PK_ECDSA;
-            else
-#endif
-#if defined(MBEDTLS_SM2_C)
-            if( strcmp( q, "sm2" ) == 0 )
-                opt.signature_alg = MBEDTLS_PK_SM2;
-            else
-#endif
                 goto usage;
         }
         else if( strcmp( p, "key_usage" ) == 0 )
@@ -331,30 +324,13 @@ int main( int argc, char *argv[] )
         mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned %d", ret );
         goto exit;
     }
-#if defined(MBEDTLS_ECP_C)
-    if ( opt.signature_alg != MBEDTLS_PK_NONE &&
-            mbedtls_pk_can_do( &key, opt.signature_alg ) == 0 )
+    if( mbedtls_pk_change_key_type( &key, opt.pk_alg ) )
     {
-#if defined(MBEDTLS_SM2_C)
-        if( opt.signature_alg == MBEDTLS_PK_SM2 )
-        {
-            if( ( ret = mbedtls_pk_change_ec_info_from_type( &key,
-                            opt.signature_alg ) ) ) {
-                mbedtls_strerror( ret, buf, 1024 );
-                mbedtls_printf( " failed\n  !  "
-                        "mbedtls_pk_change_ec_info_from_type returned -x%02x"
-                        " - %s\n\n", -ret, buf );
-                goto exit;
-            }
-        }
-        else
-#endif /* MBEDTLS_RSA_C */
-        {
-            mbedtls_printf( " failed\n  !  Bad signature algorithm type\n\n" );
-            goto exit;
-        }
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  mbedtls_pk_change_key_type returned"
+                " -x%02x - %s\n\n", -ret, buf );
+        goto exit;
     }
-#endif /* MBEDTLS_ECP_C */
 
     mbedtls_x509write_csr_set_key( &req, &key );
 

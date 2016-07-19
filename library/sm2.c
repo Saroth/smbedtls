@@ -149,7 +149,7 @@ int mbedtls_sm2_encrypt(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
         /* A2: C1 = [k]G = (x1, y1) */
         MBEDTLS_MPI_CHK(mbedtls_ecp_mul(&ctx->grp, &point, &k, &ctx->grp.G,
                     NULL, NULL));
-        output[0] = POINT_CONVERSION_UNCOMPRESSED;
+        output[0] = MBEDTLS_ECP_POINT_CONVERSION_UNCOMPRESSED;
         *olen = 1;
         MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&point.X, output + *olen,
                     mbedtls_mpi_size(&point.X)));

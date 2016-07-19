@@ -386,4 +386,24 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
     return( ctx->pk_info->type );
 }
 
+/*
+ * Helper for get length of cipher text that encrypted by public key
+ */
+size_t mbedtls_pk_cipherlen_helper( const mbedtls_pk_context *ctx,
+        size_t plain_len, size_t *cipher_len )
+{
+    if( mbedtls_pk_can_do( ctx, MBEDTLS_PK_RSA ) )
+    {
+        *cipher_len = mbedtls_pk_get_len( ctx );
+        return 0;
+    }
+    else if( mbedtls_pk_can_do( ctx, MBEDTLS_PK_SM2 ) )
+    {
+        *cipher_len = plain_len + 97;
+        return 0;
+    }
+
+    return( MBEDTLS_ERR_PK_INVALID_ALG );
+}
+
 #endif /* MBEDTLS_PK_C */
