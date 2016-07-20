@@ -442,8 +442,16 @@ int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
     unsigned char * p;
     size_t mlen;
     size_t l;
+    const unsigned char * def_id;
+    size_t def_id_len;
     const mbedtls_md_info_t * md_info = NULL;
 
+    def_id = (const unsigned char *)MBEDTLS_SM2_DEFAULT_ID;
+    def_id_len = strlen(MBEDTLS_SM2_DEFAULT_ID);
+    if (id != NULL) {
+        def_id = id;
+        def_id_len = idlen;
+    }
     md_info = mbedtls_md_info_from_type(md_alg);
     if (md_info == NULL) {
         MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_BAD_INPUT_DATA);
@@ -461,7 +469,7 @@ int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
     p++;
     p[0] = (idlen * 8) % 0xFF;
     p++;
-    memmove(p, id, idlen);
+    memmove(p, def_id, def_id_len);
     p += idlen;
     l = mbedtls_mpi_size(&ctx->grp.A);
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&ctx->grp.A, p, l));

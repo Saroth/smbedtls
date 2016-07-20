@@ -526,7 +526,6 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
  * \return          0 if successful, or a specific PK or PEM error code
  */
 int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path );
-
 #endif /* MBEDTLS_FS_IO */
 
 /**
