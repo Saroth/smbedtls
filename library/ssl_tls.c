@@ -522,8 +522,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
      * Set appropriate PRF function and other SSL / TLS / TLS1.2 functions
      */
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-    if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-            ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+    if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) )
     {
         handshake->tls_prf = ssl3_prf;
         handshake->calc_verify = ssl_calc_verify_ssl;
@@ -532,8 +531,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     else
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-            ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) )
     {
         handshake->tls_prf = tls1_prf;
         handshake->calc_verify = ssl_calc_verify_tls;
@@ -543,9 +541,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
 #if defined(MBEDTLS_SHA512_C)
-    if( ( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-                ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 ) &&
-            transform->ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+    if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_3 ) &&
+        transform->ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
     {
         handshake->tls_prf = tls_prf_sha384;
         handshake->calc_verify = ssl_calc_verify_tls_sha384;
@@ -554,8 +551,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     else
 #endif
 #if defined(MBEDTLS_SHA256_C)
-    if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-            ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_3 ) )
     {
         handshake->tls_prf = tls_prf_sha256;
         handshake->calc_verify = ssl_calc_verify_tls_sha256;
@@ -595,8 +591,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             ssl->handshake->calc_verify( ssl, session_hash );
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
-            if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-                    ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+            if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_3 ) )
             {
 #if defined(MBEDTLS_SHA512_C)
                 if( ssl->transform_negotiate->ciphersuite_info->mac ==
@@ -759,15 +754,13 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
-            if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-                    ssl->minor_ver <= MBEDTLS_SSL_MINOR_VERSION_1 )
+            if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) )
                 ; /* No need to adjust minlen */
             else
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2) || \
                 defined(MBEDTLS_GM_PROTO_TLS1_1)
-            if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-                    ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+            if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) )
             {
                 transform->minlen += transform->ivlen;
             }
@@ -833,8 +826,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-    if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-            ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+    if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) )
     {
         if( mac_key_len > sizeof transform->mac_enc )
         {
@@ -849,8 +841,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
-    if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-            ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
+    if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) )
     {
         /* For HMAC-based ciphersuites, initialize the HMAC transforms.
            For AEAD-based ciphersuites, there is nothing to do here. */
@@ -1306,8 +1297,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
         ) )
     {
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-        if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-                ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) )
         {
             unsigned char mac[SSL_MAC_MAX_BYTES];
 
@@ -1323,8 +1313,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
         defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
-        if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-                ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
+        if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) )
         {
             unsigned char mac[MBEDTLS_SSL_MAC_ADD];
 
@@ -1490,8 +1479,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
          * Prepend per-record IV for block cipher in TLS v1.1 and up as per
          * Method 1 (6.2.3.2. in RFC4346 and RFC5246)
          */
-        if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-                ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+        if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) )
         {
             /*
              * Generate IV
@@ -1536,8 +1524,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
         }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
-        if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-                ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
+        if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) )
         {
             /*
              * Save IV in SSL3 and TLS1
@@ -1746,8 +1733,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
          */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2) || \
         defined(MBEDTLS_GM_PROTO_TLS1_1)
-        if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-                ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+        if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) )
             minlen += ssl->transform_in->ivlen;
 #endif
 
@@ -1823,8 +1809,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         /*
          * Initialize for prepended IV for block cipher in TLS v1.1 and up
          */
-        if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-                ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+        if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) )
         {
             dec_msglen -= ssl->transform_in->ivlen;
             ssl->in_msglen -= ssl->transform_in->ivlen;
@@ -1852,8 +1837,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
-        if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-                ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
+        if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) )
         {
             /*
              * Save IV in SSL3 and TLS1
@@ -1878,8 +1862,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-        if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-                ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) )
         {
             if( padlen > ssl->transform_in->ivlen )
             {
@@ -1895,8 +1878,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
-        if( ssl->major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
-                ssl->minor_ver > MBEDTLS_SSL_MINOR_VERSION_0 )
+        if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) )
         {
             /*
              * TLSv1+: always check the padding up to the first failure
@@ -1972,8 +1954,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         ssl->in_len[1] = (unsigned char)( ssl->in_msglen      );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-        if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-                ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) )
         {
             ssl_mac( &ssl->transform_in->md_ctx_dec,
                       ssl->transform_in->mac_dec,
@@ -1985,8 +1966,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
         defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
-        if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-                ssl->minor_ver > MBEDTLS_SSL_MINOR_VERSION_0 )
+        if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) )
         {
             /*
              * Process MAC and always update for padlen afterwards to make
@@ -2622,18 +2602,14 @@ static void ssl_swap_epochs( mbedtls_ssl_context *ssl )
     memcpy( ssl->out_ctr,                ssl->handshake->alt_out_ctr, 8 );
     memcpy( ssl->handshake->alt_out_ctr, tmp_out_ctr,                 8 );
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2) || \
-    defined(MBEDTLS_GM_PROTO_TLS1_1)
     /* Adjust to the newly activated transform */
     if( ssl->transform_out != NULL &&
-            ( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-              ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 ) )
+        MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) )
     {
         ssl->out_msg = ssl->out_iv + ssl->transform_out->ivlen -
                                      ssl->transform_out->fixed_ivlen;
     }
     else
-#endif
         ssl->out_msg = ssl->out_iv;
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
@@ -3621,8 +3597,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
         }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-        if( ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-                ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) &&
+        if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) &&
             ssl->in_msglen > ssl->transform_in->minlen + MBEDTLS_SSL_MAX_CONTENT_LEN )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
@@ -3634,10 +3609,9 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
         /*
          * TLS encrypted messages can have up to 256 bytes of padding
          */
-        if( ssl->in_msglen > ssl->transform_in->minlen +
-                MBEDTLS_SSL_MAX_CONTENT_LEN + 256 &&
-                ( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-                  ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 ) )
+        if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) &&
+            ssl->in_msglen > ssl->transform_in->minlen +
+                             MBEDTLS_SSL_MAX_CONTENT_LEN + 256 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
@@ -4127,8 +4101,7 @@ read_record_header:
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) && defined(MBEDTLS_SSL_SRV_C)
-        if( ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-                ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) &&
+        if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) &&
             ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
             ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_WARNING &&
             ssl->in_msg[1] == MBEDTLS_SSL_ALERT_MSG_NO_CERT )
@@ -4271,8 +4244,7 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
          * (otherwise an empty Certificate message will be sent).
          */
         if( mbedtls_ssl_own_cert( ssl )  == NULL &&
-                ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-                  ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) )
+            MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) )
         {
             ssl->out_msglen  = 2;
             ssl->out_msgtype = MBEDTLS_SSL_MSG_ALERT;
@@ -4409,8 +4381,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
      * Check if the client sent an empty certificate
      */
     if( ssl->conf->endpoint  == MBEDTLS_SSL_IS_SERVER &&
-            ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-              ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) )
+        MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) )
     {
         if( ssl->in_msglen  == 2                        &&
             ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT            &&
@@ -4431,8 +4402,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
     if( ssl->conf->endpoint  == MBEDTLS_SSL_IS_SERVER &&
-            ( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-              ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_0 ) )
+        MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) )
     {
         if( ssl->in_hslen   == 3 + mbedtls_ssl_hs_hdr_len( ssl ) &&
             ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE    &&
@@ -4740,8 +4710,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     /*
      * Set the in_msg pointer to the correct location based on IV length
      */
-    if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-            ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+    if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) )
     {
         ssl->in_msg = ssl->in_iv + ssl->transform_negotiate->ivlen -
                       ssl->transform_negotiate->fixed_ivlen;
@@ -4774,8 +4743,7 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-                ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_3 ) )
         ssl->handshake->update_checksum = ssl_update_checksum_md5sha1;
     else
 #endif
@@ -5200,8 +5168,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     /*
      * Set the out_msg pointer to the correct location based on IV length
      */
-    if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-            ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+    if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) )
     {
         ssl->out_msg = ssl->out_iv + ssl->transform_negotiate->ivlen -
                        ssl->transform_negotiate->fixed_ivlen;
@@ -5212,8 +5179,8 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->conf->endpoint );
 
     // TODO TLS/1.2 Hash length is determined by cipher suite (Page 63)
-    hash_len = ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 && 
-            ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) ? 36 : 12;
+    hash_len = MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL(
+                MBEDTLS_SSL_MINOR_VERSION_0 ) ? 36 : 12;
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     ssl->verify_data_len = hash_len;
@@ -5336,8 +5303,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
 
     /* There is currently no ciphersuite using another length with TLS 1.2 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-    if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-            ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+    if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) )
         hash_len = 36;
     else
 #endif
@@ -6876,8 +6842,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "refusing renegotiation, sending alert" ) );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-                if( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-                        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+                if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) )
                 {
                     /*
                      * SSLv3 does not have a "no_renegotiation" alert
@@ -6889,8 +6854,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_TLS1_1)
-                if( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-                        ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
+                if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) )
                 {
                     if( ( ret = mbedtls_ssl_send_alert_message( ssl,
                                     MBEDTLS_SSL_ALERT_LEVEL_WARNING,
@@ -7052,8 +7016,7 @@ static int ssl_write_split( mbedtls_ssl_context *ssl,
     if( ssl->conf->cbc_record_splitting ==
             MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED ||
         len <= 1 ||
-        ( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-          ssl->minor_ver > MBEDTLS_SSL_MINOR_VERSION_1 ) ||
+        MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) ||
         mbedtls_cipher_get_cipher_mode( &ssl->transform_out->cipher_ctx_enc )
                                 != MBEDTLS_MODE_CBC )
     {
@@ -7917,6 +7880,10 @@ void mbedtls_ssl_write_version( int major, int minor, int transport,
     ((void) transport);
 #endif
     {
+#if defined(MBEDTLS_GM_PROTO_TLS1_1)
+        if( major == MBEDTLS_GM_MAJOR_VERSION_1 )
+            major = MBEDTLS_GM_MAJOR_VERSION_1_STANDARD;
+#endif
         ver[0] = (unsigned char) major;
         ver[1] = (unsigned char) minor;
     }
@@ -7942,6 +7909,10 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
     {
         *major = ver[0];
         *minor = ver[1];
+#if defined(MBEDTLS_GM_PROTO_TLS1_1)
+        if( *major == MBEDTLS_GM_MAJOR_VERSION_1_STANDARD )
+            *major = MBEDTLS_GM_MAJOR_VERSION_1;
+#endif
     }
 }
 

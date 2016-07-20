@@ -105,6 +105,11 @@
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_GM_PROTO_TLS1_1 */
 
+#define MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL(_minor_)   \
+    ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 && ssl->minor_ver <= _minor_ )
+#define MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL(_minor_)   \
+    ( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 || ssl->minor_ver >= _minor_ )
+
 #define MBEDTLS_SSL_INITIAL_HANDSHAKE           0
 #define MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS   1   /* In progress */
 #define MBEDTLS_SSL_RENEGOTIATION_DONE          2   /* Done or aborted */
