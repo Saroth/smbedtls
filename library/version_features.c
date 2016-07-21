@@ -369,9 +369,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     "MBEDTLS_SSL_PROTO_DTLS",
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-#if defined(MBEDTLS_GM_PROTO_TLS1_1)
-    "MBEDTLS_GM_PROTO_TLS1_1"
-#endif /* MBEDTLS_GM_PROTO_TLS1_1 */
+#if defined(MBEDTLS_GM_PROTO_SSL1_1)
+    "MBEDTLS_GM_PROTO_SSL1_1"
+#endif /* MBEDTLS_GM_PROTO_SSL1_1 */
 #if defined(MBEDTLS_SSL_ALPN)
     "MBEDTLS_SSL_ALPN",
 #endif /* MBEDTLS_SSL_ALPN */
