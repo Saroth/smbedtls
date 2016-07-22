@@ -420,7 +420,7 @@
 
 #if defined(MBEDTLS_SSL_TLS_C) && (!defined(MBEDTLS_SSL_PROTO_SSL3) && \
     !defined(MBEDTLS_SSL_PROTO_TLS1) && !defined(MBEDTLS_SSL_PROTO_TLS1_1) && \
-    !defined(MBEDTLS_SSL_PROTO_TLS1_2))
+    !defined(MBEDTLS_SSL_PROTO_TLS1_2) && !defined(MBEDTLS_GM_PROTO_SSL1_1))
 #error "MBEDTLS_SSL_TLS_C defined, but no protocols are active"
 #endif
 
@@ -462,14 +462,16 @@
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) &&   \
     !defined(MBEDTLS_SSL_PROTO_TLS1)   &&      \
     !defined(MBEDTLS_SSL_PROTO_TLS1_1) &&      \
-    !defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    !defined(MBEDTLS_SSL_PROTO_TLS1_2) &&      \
+    !defined(MBEDTLS_GM_PROTO_SSL1_1)
 #error "MBEDTLS_SSL_ENCRYPT_THEN_MAC defined, but not all prerequsites"
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) && \
     !defined(MBEDTLS_SSL_PROTO_TLS1)   &&          \
     !defined(MBEDTLS_SSL_PROTO_TLS1_1) &&          \
-    !defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    !defined(MBEDTLS_SSL_PROTO_TLS1_2) &&      \
+    !defined(MBEDTLS_GM_PROTO_SSL1_1)
 #error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequsites"
 #endif
 

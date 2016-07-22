@@ -406,7 +406,7 @@ static int ssl_parse_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
     ((void) buf);
 
     if( ssl->conf->encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED &&
-        MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) )
+        ( MBEDTLS_SSL_PROTO_IS_TLS1_X || MBEDTLS_GM_PROTO_IS_SSL1_1 ) )
     {
         ssl->session_negotiate->encrypt_then_mac = MBEDTLS_SSL_ETM_ENABLED;
     }
@@ -429,7 +429,7 @@ static int ssl_parse_extended_ms_ext( mbedtls_ssl_context *ssl,
     ((void) buf);
 
     if( ssl->conf->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED &&
-        MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) )
+        ( MBEDTLS_SSL_PROTO_IS_TLS1_X || MBEDTLS_GM_PROTO_IS_SSL1_1 ) )
     {
         ssl->handshake->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
     }
@@ -681,7 +681,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
          * present them a SHA-higher cert rather than failing if it's the only
          * one we got that satisfies the other conditions.
          */
-        if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) &&
+        if( MBEDTLS_SSL_PROTO_IS_TLS1_1_OR_LESSER &&
             cur->cert->sig_md != MBEDTLS_MD_SHA1 )
         {
             if( fallback == NULL )
@@ -1387,8 +1387,8 @@ read_record_header:
     ssl->handshake->max_minor_ver = ssl->minor_ver;
 
     if( ssl->major_ver < ssl->conf->min_major_ver ||
-            ( ssl->major_ver == ssl->conf->min_major_ver &&
-              ssl->minor_ver < ssl->conf->min_minor_ver ) )
+        ( ssl->major_ver == ssl->conf->min_major_ver &&
+        ssl->minor_ver < ssl->conf->min_minor_ver ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
                             " [%d:%d] < [%d:%d]",
@@ -1407,7 +1407,7 @@ read_record_header:
         ssl->minor_ver = ssl->conf->max_minor_ver;
     }
     else if( ssl->major_ver == ssl->conf->max_major_ver &&
-            ssl->minor_ver > ssl->conf->max_minor_ver )
+        ssl->minor_ver > ssl->conf->max_minor_ver )
         ssl->minor_ver = ssl->conf->max_minor_ver;
 
     /*
@@ -1738,7 +1738,7 @@ read_record_header:
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received FALLBACK_SCSV" ) );
 
             if( ssl->major_ver == ssl->conf->max_major_ver &&
-                    ssl->minor_ver < ssl->conf->max_minor_ver )
+                ssl->minor_ver < ssl->conf->max_minor_ver )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
 
@@ -1962,7 +1962,7 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
     const mbedtls_cipher_info_t *cipher = NULL;
 
     if( ssl->session_negotiate->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED ||
-        MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) )
+        MBEDTLS_SSL_PROTO_IS_SSL3 )
     {
         *olen = 0;
         return;
@@ -2003,7 +2003,7 @@ static void ssl_write_extended_ms_ext( mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
 
     if( ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_DISABLED ||
-        MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_0 ) )
+        MBEDTLS_SSL_PROTO_IS_SSL3 )
     {
         *olen = 0;
         return;
@@ -2574,7 +2574,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      *     enum { (255) } HashAlgorithm;
      *     enum { (255) } SignatureAlgorithm;
      */
-    if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_3 ) )
+    if( MBEDTLS_SSL_PROTO_IS_TLS1_2 || MBEDTLS_GM_PROTO_IS_SSL1_1 )
     {
         /*
          * Only use current running hash algorithm that is already required
@@ -2586,6 +2586,11 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
             MBEDTLS_MD_SHA384 )
         {
             ssl->handshake->verify_sig_alg = MBEDTLS_SSL_HASH_SHA384;
+        }
+        else if( ssl->transform_negotiate->ciphersuite_info->mac ==
+            MBEDTLS_MD_SM3 )
+        {
+            ssl->handshake->verify_sig_alg = MBEDTLS_SSL_HASH_SM3;
         }
 
         /*
@@ -2886,7 +2891,7 @@ curve_matching_done:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_SSL1_1)
         mbedtls_pk_type_t sig_alg =
             mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
-        if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_3 ) )
+        if( MBEDTLS_SSL_PROTO_IS_TLS1_2 || MBEDTLS_GM_PROTO_IS_SSL1_1 )
         {
             /* A: For TLS 1.2, obey signature-hash-algorithm extension
              *    (RFC 5246, Sec. 7.4.1.4.1). */
@@ -3016,7 +3021,7 @@ curve_matching_done:
         }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_SSL1_1)
-        if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_3 ) )
+        if( MBEDTLS_SSL_PROTO_IS_TLS1_2 || MBEDTLS_GM_PROTO_IS_SSL1_1 )
         {
             /*
              * For TLS 1.2, we need to specify signature and hash algorithm
@@ -3176,7 +3181,7 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
      */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_SSL1_1)
-    if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_1 ) )
+    if( MBEDTLS_SSL_PROTO_IS_TLS1_X || MBEDTLS_GM_PROTO_IS_SSL1_1 )
     {
         if( *p++ != ( ( len >> 8 ) & 0xFF ) ||
             *p++ != ( ( len      ) & 0xFF ) )
@@ -3629,7 +3634,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
      */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_2 ) )
+    if( MBEDTLS_SSL_PROTO_IS_TLS1_1_OR_LESSER )
     {
         md_alg = MBEDTLS_MD_NONE;
         hashlen = 36;
@@ -3647,7 +3652,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 ||
           MBEDTLS_SSL_PROTO_TLS1_1 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_GM_PROTO_SSL1_1)
-    if( MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL( MBEDTLS_SSL_MINOR_VERSION_3 ) )
+    if( MBEDTLS_SSL_PROTO_IS_TLS1_2 || MBEDTLS_GM_PROTO_IS_SSL1_1 )
     {
         if( i + 2 > ssl->in_hslen )
         {

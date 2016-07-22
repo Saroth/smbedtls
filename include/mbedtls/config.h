@@ -932,7 +932,8 @@
  *
  * Requires: MBEDTLS_SSL_PROTO_TLS1    or
  *           MBEDTLS_SSL_PROTO_TLS1_1  or
- *           MBEDTLS_SSL_PROTO_TLS1_2
+ *           MBEDTLS_SSL_PROTO_TLS1_2  or
+ *           MBEDTLS_GM_PROTO_SSL1_1
  *
  * Comment this macro to disable support for Encrypt-then-MAC
  */
@@ -950,7 +951,8 @@
  *
  * Requires: MBEDTLS_SSL_PROTO_TLS1    or
  *           MBEDTLS_SSL_PROTO_TLS1_1  or
- *           MBEDTLS_SSL_PROTO_TLS1_2
+ *           MBEDTLS_SSL_PROTO_TLS1_2  or
+ *           MBEDTLS_GM_PROTO_SSL1_1
  *
  * Comment this macro to disable support for Extended Master Secret.
  */
@@ -2578,7 +2580,7 @@
  *
  * Enable support for GM-TLS 1.1 (no GM-DTLS support temporarily).
  *
- * Requires:
+ * Requires: MBEDTLS_SM3_C
  *
  * Comment this macro to disable support for GM-TLS 1.1/GM-DTLS 1.1
  */

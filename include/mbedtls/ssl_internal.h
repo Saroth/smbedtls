@@ -42,6 +42,10 @@
 #include "sha512.h"
 #endif
 
+#if defined(MBEDTLS_SM3_C)
+#include "sm3.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -105,10 +109,32 @@
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_GM_PROTO_SSL1_1 */
 
-#define MBEDTLS_SSL_VERSION_LESS_THAN_OR_EQUAL(_minor_)   \
-    ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 && ssl->minor_ver <= _minor_ )
-#define MBEDTLS_SSL_VERSION_GREAT_THAN_OR_EQUAL(_minor_)   \
-    ( ssl->major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 || ssl->minor_ver >= _minor_ )
+#define MBEDTLS_SSL_PROTO_IS_SSL3                               \
+    ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&          \
+      ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+
+#define MBEDTLS_SSL_PROTO_IS_TLS1                               \
+    ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&          \
+      ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_1 )
+#define MBEDTLS_SSL_PROTO_IS_TLS1_1                             \
+    ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&          \
+      ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_2 )
+#define MBEDTLS_SSL_PROTO_IS_TLS1_1_OR_LESSER                   \
+    ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&          \
+      ssl->minor_ver <= MBEDTLS_SSL_MINOR_VERSION_2 )
+#define MBEDTLS_SSL_PROTO_IS_TLS1_1_OR_GREATER                  \
+    ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&          \
+      ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+#define MBEDTLS_SSL_PROTO_IS_TLS1_2                             \
+    ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&          \
+      ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+#define MBEDTLS_SSL_PROTO_IS_TLS1_X                             \
+    ( ssl->major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&          \
+      ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
+
+#define MBEDTLS_GM_PROTO_IS_SSL1_1                              \
+    ( ssl->major_ver == MBEDTLS_GM_MAJOR_VERSION_1 &&           \
+      ssl->minor_ver >= MBEDTLS_GM_MINOR_VERSION_1 )
 
 #define MBEDTLS_SSL_INITIAL_HANDSHAKE           0
 #define MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS   1   /* In progress */
@@ -293,6 +319,11 @@ struct mbedtls_ssl_handshake_params
     mbedtls_sha512_context fin_sha512;
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+#if defined(MBEDTLS_GM_PROTO_SSL1_1)
+#if defined(MBEDTLS_SM3_C)
+    mbedtls_sm3_context fin_sm3;
+#endif
+#endif /* MBEDTLS_GM_PROTO_SSL1_1 */
 
     void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
     void (*calc_verify)(mbedtls_ssl_context *, unsigned char *);
