@@ -1,8 +1,12 @@
 /*
  * SM2 Encryption alogrithm
- * GM/T 0003-2012 Chinese National Standard:
+ *
+ * References:
+ * - GM/T 0003-2012 Chinese National Standard:
  *      Public Key Cryptographic Algorithm SM2 Based on Elliptic Curves
- * Refers to: http://www.oscca.gov.cn/
+ * - GM/T 0009-2012 SM2 cryptography algorithm application specification
+ * - GM/T 0015-2012 Digital certificate format based on SM2 algorithm
+ *
  * Thanks to MbedTLS.
  */
 
@@ -435,28 +439,26 @@ cleanup:
 }
 
 int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
-        const unsigned char *id, size_t idlen, unsigned char *z)
+        const char *id, unsigned char *z)
 {
     int ret = 0;
     unsigned char * m = NULL;
     unsigned char * p;
     size_t mlen;
     size_t l;
-    const unsigned char * def_id;
+    const char * def_id = MBEDTLS_SM2_GMT09_DEFAULT_ID;
     size_t def_id_len;
     const mbedtls_md_info_t * md_info = NULL;
 
-    def_id = (const unsigned char *)MBEDTLS_SM2_DEFAULT_ID;
-    def_id_len = strlen(MBEDTLS_SM2_DEFAULT_ID);
     if (id != NULL) {
-        def_id = id;
-        def_id_len = idlen;
+        def_id = (char *)id;
     }
+    def_id_len = strlen(def_id);
     md_info = mbedtls_md_info_from_type(md_alg);
     if (md_info == NULL) {
         MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_BAD_INPUT_DATA);
     }
-    mlen = 2 + idlen
+    mlen = 2 + def_id_len
         + mbedtls_mpi_size(&ctx->grp.A) + mbedtls_mpi_size(&ctx->grp.B)
         + mbedtls_mpi_size(&ctx->grp.G.X) + mbedtls_mpi_size(&ctx->grp.G.Y)
         + mbedtls_mpi_size(&ctx->Q.X) + mbedtls_mpi_size(&ctx->Q.Y);
@@ -465,12 +467,12 @@ int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
     }
 
     p = m;
-    p[0] = (idlen * 8) / 0xFF;
+    p[0] = (def_id_len * 8) / 0xFF;
     p++;
-    p[0] = (idlen * 8) % 0xFF;
+    p[0] = (def_id_len * 8) % 0xFF;
     p++;
     memmove(p, def_id, def_id_len);
-    p += idlen;
+    p += def_id_len;
     l = mbedtls_mpi_size(&ctx->grp.A);
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&ctx->grp.A, p, l));
     p += l;
@@ -495,6 +497,36 @@ cleanup:
     if (m) {
         mbedtls_free(m);
     }
+
+    return (ret);
+}
+
+int mbedtls_sm2_get_hash_zm(mbedtls_md_type_t md_alg, const unsigned char *z,
+        const unsigned char *input, size_t ilen, unsigned char *output)
+{
+    int ret = 0;
+    const mbedtls_md_info_t * md_info = NULL;
+    mbedtls_md_context_t md_ctx;
+
+    md_info = mbedtls_md_info_from_type(md_alg);
+    if (md_info == NULL)
+        MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_BAD_INPUT_DATA);
+
+    mbedtls_md_init(&md_ctx);
+    if((ret = mbedtls_md_setup(&md_ctx, md_info, 0)) != 0)
+        goto cleanup;
+
+    if ((ret = mbedtls_md_starts(&md_ctx)) != 0)
+        return ret;
+    if ((ret = mbedtls_md_update(&md_ctx, z, mbedtls_md_get_size(md_info))) != 0)
+        return ret;
+    if ((ret = mbedtls_md_update(&md_ctx, input, ilen)) != 0)
+        return ret;
+    if ((ret = mbedtls_md_finish(&md_ctx, output)) != 0)
+        return ret;
+
+cleanup:
+    mbedtls_md_free(&md_ctx);
 
     return (ret);
 }
@@ -615,7 +647,7 @@ static const unsigned char sm2_test2_pubk[] = {
     0x07, 0x35, 0x3E, 0x53, 0xA1, 0x76, 0xD6, 0x84,
     0xA9, 0xFE, 0x0C, 0x6B, 0xB7, 0x98, 0xE8, 0x57,
 };
-static const unsigned char sm2_test_ID[] = {            // ALICE123@YAHOO.COM
+static const char sm2_test_ID[] = {            // ALICE123@YAHOO.COM
     0x41, 0x4C, 0x49, 0x43, 0x45, 0x31, 0x32, 0x33,
     0x40, 0x59, 0x41, 0x48, 0x4F, 0x4F, 0x2E, 0x43,
     0x4F, 0x4D,
@@ -737,7 +769,7 @@ int mbedtls_sm2_self_test(int verbose)
     }
 
     if ((ret = mbedtls_sm2_get_z(&ctx, MBEDTLS_MD_SM3,
-                    sm2_test_ID, sizeof(sm2_test_ID), output)) != 0) {
+                    sm2_test_ID, output)) != 0) {
         if (verbose != 0) {
             mbedtls_printf( "failed\n" );
         }
@@ -746,6 +778,26 @@ int mbedtls_sm2_self_test(int verbose)
     if (memcmp(output, sm2_test_z, sizeof(sm2_test_z)) != 0) {
         if (verbose != 0) {
             mbedtls_printf( "check failed\n" );
+        }
+        ret = 1;
+        goto cleanup;
+    }
+
+    if (verbose != 0) {
+        mbedtls_printf("passed\n  SM2 Get hash: ");
+    }
+
+    if ((ret = mbedtls_sm2_get_hash_zm(MBEDTLS_MD_SM3,
+                    sm2_test_z, sm2_test_messagetext,
+                    sizeof(sm2_test_messagetext), output)) != 0) {
+        if (verbose != 0) {
+            mbedtls_printf("failed\n");
+        }
+        goto cleanup;
+    }
+    if (memcmp(output, sm2_test_md, sizeof(sm2_test_md)) != 0) {
+        if (verbose != 0) {
+            mbedtls_printf("check failed\n");
         }
         ret = 1;
         goto cleanup;

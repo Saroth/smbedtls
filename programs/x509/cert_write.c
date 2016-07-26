@@ -53,6 +53,7 @@ int main( void )
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/md.h"
 #include "mbedtls/error.h"
+#include "mbedtls/sm2.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -279,9 +280,6 @@ int main( int argc, char *argv[] )
 #endif
         mbedtls_printf( "\n" );
         mbedtls_printf( " Available message digest algorithm types:\n" );
-#if defined(MBEDTLS_SM2_C)
-        mbedtls_printf( "    sm2\n");
-#endif
 #if defined(MBEDTLS_MD2_C)
         mbedtls_printf( "    md2\n" );
 #endif

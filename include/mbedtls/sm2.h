@@ -20,7 +20,7 @@
 #define MBEDTLS_ERR_SM2_BAD_SIGNATURE       -0x4A80 /*!< Invalid signature */
 
 #define MBEDTLS_SM2_SPECIFIC_MD_ALGORITHM   MBEDTLS_MD_SM3
-#define MBEDTLS_SM2_DEFAULT_ID              "1234567812345678"
+#define MBEDTLS_SM2_GMT09_DEFAULT_ID        "1234567812345678"
 
 /**
  *  Enum for the point conversion form as defined in X9.62 (ECDSA)
@@ -114,18 +114,31 @@ int mbedtls_sm2_verify(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
  *
  * \param ctx       SM2 context
  * \param md_alg    Algorithm that was used to hash the message
- * \param id        User ID.
+ * \param id        User ID, character string.
  *                  GM/T 0009-2012 Public Key Infrastructure Application
  *                          Technology SM2 Cryptography Specification: 10:
  *                      In the case Without specific agreement, the default ID
- *                      value is: "1234567812345678" (string, 16 byte)
- * \param idlen     The ID length
+ *                      value is: "1234567812345678" (16 byte)
  * \param z         Buffer that will hold the Z
  *
  * \return          0 if successful, or a error code
  */
 int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
-        const unsigned char *id, size_t idlen, unsigned char *z);
+        const char *id, unsigned char *z);
+
+/**
+ * \brief           Compute digest by Z and message
+ *
+ * \param md_alg    Algorithm that was used to hash the message
+ * \param z         The Z computed by mbedtls_sm2_get_z
+ * \param input     buffer holding the data
+ * \param ilen      length of the input data
+ * \param output    Generic message digest checksum result
+ *
+ * \return          0 if successful, or a error code
+ */
+int mbedtls_sm2_get_hash_zm(mbedtls_md_type_t md_alg, const unsigned char *z,
+        const unsigned char *input, size_t ilen, unsigned char *output);
 
 /**
  * \brief           Generate an SM2 keypair on the given curve

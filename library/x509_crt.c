@@ -1678,6 +1678,25 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             break;
         }
 
+#if defined(MBEDTLS_SM2_C)
+        if( crl_list->sig_pk == MBEDTLS_PK_SM2 )
+        {
+            int ret;
+            unsigned char z[MBEDTLS_MD_MAX_SIZE];
+
+            if( ( ret = mbedtls_sm2_get_z( ca->pk.pk_ctx, crl_list->sig_md,
+                            NULL, z ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_sm2_get_hash_zm( crl_list->sig_md,
+                            z, crl_list->tbs.p, crl_list->tbs.len, hash ) ) != 0 )
+                return( ret );
+        }
+        else
+#endif /* MBEDTLS_SM2_C */
+        {
+            mbedtls_md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
+        }
+
         if( x509_profile_check_key( profile, crl_list->sig_pk, &ca->pk ) != 0 )
             flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
@@ -1949,6 +1968,24 @@ static int x509_crt_verify_top(
         /* Cannot check signature, no need to try any CA */
         trust_ca = NULL;
     }
+    else
+#if defined(MBEDTLS_SM2_C)
+    if( child->sig_pk == MBEDTLS_PK_SM2 )
+    {
+        unsigned char z[MBEDTLS_MD_MAX_SIZE];
+
+        if( ( ret = mbedtls_sm2_get_z( trust_ca->pk.pk_ctx, child->sig_md,
+                        NULL, z ) ) != 0 )
+            return( ret );
+        if( ( ret = mbedtls_sm2_get_hash_zm( child->sig_md,
+                        z, child->tbs.p, child->tbs.len, hash ) ) != 0 )
+            return( ret );
+    }
+    else
+#endif /* MBEDTLS_SM2_C */
+    {
+        mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
+    }
 
     for( /* trust_ca */ ; trust_ca != NULL; trust_ca = trust_ca->next )
     {
@@ -2100,6 +2137,24 @@ static int x509_crt_verify_child(
     }
     else
     {
+#if defined(MBEDTLS_SM2_C)
+        if( child->sig_pk == MBEDTLS_PK_SM2 )
+        {
+            unsigned char z[MBEDTLS_MD_MAX_SIZE];
+
+            if( ( ret = mbedtls_sm2_get_z( parent->pk.pk_ctx, child->sig_md,
+                            NULL, z ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_sm2_get_hash_zm( child->sig_md,
+                            z, child->tbs.p, child->tbs.len, hash ) ) != 0 )
+                return( ret );
+        }
+        else
+#endif /* MBEDTLS_SM2_C */
+        {
+            mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
+        }
+
         if( x509_profile_check_key( profile, child->sig_pk, &parent->pk ) != 0 )
             *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
