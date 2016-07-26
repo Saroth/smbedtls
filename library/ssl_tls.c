@@ -4237,7 +4237,8 @@ int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
     !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   && \
     !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
     !defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)    && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)  && \
+    !defined(MBEDTLS_KEY_EXCHANGE_SM2_ENABLED)
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 {
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
@@ -4698,7 +4699,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
           !MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
           !MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
           !MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+          !MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+          !MBEDTLS_KEY_EXCHANGE_SM2_ENABLED */
 
 int mbedtls_ssl_write_change_cipher_spec( mbedtls_ssl_context *ssl )
 {
