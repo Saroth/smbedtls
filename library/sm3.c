@@ -89,6 +89,8 @@ void mbedtls_sm3_starts(mbedtls_sm3_context *ctx)
     ctx->state[7] = 0xB0FB0E4E;
 }
 
+#if !defined(MBEDTLS_SM3_PROCESS_ALT)
+
 void mbedtls_sm3_process(mbedtls_sm3_context *ctx,
         const unsigned char data[64])
 {
@@ -195,6 +197,7 @@ void mbedtls_sm3_process(mbedtls_sm3_context *ctx,
     ctx->state[6] ^= G;
     ctx->state[7] ^= H;
 }
+#endif /* !MBEDTLS_SM3_PROCESS_ALT */
 
 /*
  * SM3 process buffer

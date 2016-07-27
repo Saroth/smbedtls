@@ -10,6 +10,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#if !defined(MBEDTLS_SM3_ALT)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -88,6 +90,18 @@ void mbedtls_sm3_process(mbedtls_sm3_context *ctx,
  */
 void mbedtls_sm3(const unsigned char *input, int ilen,
         unsigned char output[32]);
+
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* MBEDTLS_SM3_ALT */
+#include "sm3_alt.h"
+#endif /* MBEDTLS_SM3_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          Checkup routine

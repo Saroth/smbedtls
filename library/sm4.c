@@ -29,11 +29,24 @@ static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
+#define SWAP(a, b) { unsigned long t = a; a = b; b = t; t = 0; }
+
+void mbedtls_sm4_init(mbedtls_sm4_context *ctx)
+{
+    memset(ctx, 0, sizeof(mbedtls_sm4_context));
+}
+void mbedtls_sm4_free(mbedtls_sm4_context *ctx)
+{
+    if(ctx == NULL) {
+        return;
+    }
+    mbedtls_zeroize(ctx, sizeof(mbedtls_sm4_context));
+}
+
+#if !defined(MBEDTLS_SM4_SETKEY_ALT) || !defined(MBEDTLS_SM4_CRYPT_ECB_ALT)
 /* rotate shift left marco definition */
 #define  SHL(x, n) (((x) & 0xFFFFFFFF) << n)
 #define ROTL(x, n) (SHL((x), n) | ((x) >> (32 - n)))
-
-#define SWAP(a, b) { unsigned long t = a; a = b; b = t; t = 0; }
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -98,12 +111,19 @@ static const unsigned char sbox_table[256] =
     0x79, 0xee, 0x5f, 0x3e, 0xd7, 0xcb, 0x39, 0x48,
 };
 
-/* System parameter */
-static const uint32_t fk[4] = 
+/**
+ * \brief       look up in SboxTable and get the related value.
+ * \param  [in] inch: 0x00~0xFF (8 bits unsigned value).
+ */
+static unsigned char sm4_sbox(unsigned char inch)
 {
-    0xa3b1bac6, 0x56aa3350, 0x677d9197, 0xb27022dc,
-};
+    unsigned char *tbl = (unsigned char *)sbox_table;
+    unsigned char val = (unsigned char)(tbl[inch]);
+    return val;
+}
+#endif /* !MBEDTLS_SM4_SETKEY_ALT || !MBEDTLS_SM4_CRYPT_ECB_ALT */
 
+#if !defined(MBEDTLS_SM4_SETKEY_ALT)
 /* Fixed parameter */
 static const uint32_t ck[32] =
 {
@@ -117,30 +137,80 @@ static const uint32_t ck[32] =
     0x10171e25, 0x2c333a41, 0x484f565d, 0x646b7279,
 };
 
-void mbedtls_sm4_init(mbedtls_sm4_context *ctx)
+/* System parameter */
+static const uint32_t fk[4] = 
 {
-    memset(ctx, 0, sizeof(mbedtls_sm4_context));
-    
-}
-void mbedtls_sm4_free(mbedtls_sm4_context *ctx)
-{
-    if(ctx == NULL) {
-        return;
-    }
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sm4_context));
-}
+    0xa3b1bac6, 0x56aa3350, 0x677d9197, 0xb27022dc,
+};
 
 /**
- * \brief       look up in SboxTable and get the related value.
- * \param  [in] inch: 0x00~0xFF (8 bits unsigned value).
+ * \brief       Calculating round encryption key.
+ * \param  [in] a: a is a 32 bits unsigned value;
+ * \return      sk[i]: i { 0, 1, 2, 3, ... 31, }.
  */
-static unsigned char sm4_sbox(unsigned char inch)
+static uint32_t sm4_calc_rk(uint32_t ka)
 {
-    unsigned char *tbl = (unsigned char *)sbox_table;
-    unsigned char val = (unsigned char)(tbl[inch]);
-    return val;
+    uint32_t bb = 0;
+    uint32_t rk = 0;
+    unsigned char a[4];
+    unsigned char b[4];
+    PUT_UINT32_BE(ka, a, 0);
+    b[0] = sm4_sbox(a[0]);
+    b[1] = sm4_sbox(a[1]);
+    b[2] = sm4_sbox(a[2]);
+    b[3] = sm4_sbox(a[3]);
+    GET_UINT32_BE(bb, b, 0)
+    rk = bb ^ (ROTL(bb, 13)) ^ (ROTL(bb, 23));
+    return rk;
 }
 
+void mbedtls_sm4_setkey(uint32_t sk[32],
+        const unsigned char key[MBEDTLS_SM4_KEY_SIZE])
+{
+    unsigned long mk[4];
+    unsigned long k[36];
+    unsigned long i = 0;
+
+    GET_UINT32_BE(mk[0], key, 0);
+    GET_UINT32_BE(mk[1], key, 4);
+    GET_UINT32_BE(mk[2], key, 8);
+    GET_UINT32_BE(mk[3], key, 12);
+    k[0] = mk[0] ^ fk[0];
+    k[1] = mk[1] ^ fk[1];
+    k[2] = mk[2] ^ fk[2];
+    k[3] = mk[3] ^ fk[3];
+    for (; i < 32; i++) {
+        k[i + 4] = k[i] ^ (sm4_calc_rk(k[i + 1] ^ k[i + 2] ^ k[i + 3] ^ ck[i]));
+        sk[i] = k[i + 4];
+    }
+}
+#endif /* !MBEDTLS_SM4_SETKEY_ALT */
+
+/*
+ * SM4 key schedule (128-bit, encryption)
+ */
+int mbedtls_sm4_setkey_enc(mbedtls_sm4_context *ctx,
+        const unsigned char key[MBEDTLS_SM4_KEY_SIZE])
+{
+    mbedtls_sm4_setkey(ctx->sk, key);
+    return 0;
+}
+
+/*
+ * SM4 key schedule (128-bit, decryption)
+ */
+int mbedtls_sm4_setkey_dec(mbedtls_sm4_context *ctx,
+        const unsigned char key[MBEDTLS_SM4_KEY_SIZE])
+{
+    int i;
+    mbedtls_sm4_setkey(ctx->sk, key);
+    for (i = 0; i < MBEDTLS_SM4_KEY_SIZE; i++) {
+        SWAP(ctx->sk[i], ctx->sk[31 - i]);
+    }
+    return 0;
+}
+
+#if !defined(MBEDTLS_SM4_CRYPT_ECB_ALT)
 /**
  * \brief       "T algorithm" == "L algorithm" + "t algorithm".
  * \param  [in] a: a is a 32 bits unsigned value;
@@ -181,49 +251,6 @@ static uint32_t sm4_f(uint32_t x0,
     return (x0 ^ sm4_lt(x1 ^ x2 ^ x3 ^ rk));
 }
 
-/**
- * \brief       Calculating round encryption key.
- * \param  [in] a: a is a 32 bits unsigned value;
- * \return      sk[i]: i { 0, 1, 2, 3, ... 31, }.
- */
-static uint32_t sm4_calc_rk(uint32_t ka)
-{
-    uint32_t bb = 0;
-    uint32_t rk = 0;
-    unsigned char a[4];
-    unsigned char b[4];
-    PUT_UINT32_BE(ka, a, 0);
-    b[0] = sm4_sbox(a[0]);
-    b[1] = sm4_sbox(a[1]);
-    b[2] = sm4_sbox(a[2]);
-    b[3] = sm4_sbox(a[3]);
-    GET_UINT32_BE(bb, b, 0)
-    rk = bb ^ (ROTL(bb, 13)) ^ (ROTL(bb, 23));
-    return rk;
-}
-
-static void sm4_setkey(uint32_t sk[32],
-        const unsigned char key[MBEDTLS_SM4_KEY_SIZE])
-{
-    unsigned long mk[4];
-    unsigned long k[36];
-    unsigned long i = 0;
-
-    GET_UINT32_BE(mk[0], key, 0);
-    GET_UINT32_BE(mk[1], key, 4);
-    GET_UINT32_BE(mk[2], key, 8);
-    GET_UINT32_BE(mk[3], key, 12);
-    k[0] = mk[0] ^ fk[0];
-    k[1] = mk[1] ^ fk[1];
-    k[2] = mk[2] ^ fk[2];
-    k[3] = mk[3] ^ fk[3];
-    for (; i < 32; i++) {
-        k[i + 4] = k[i] ^ (sm4_calc_rk(k[i + 1] ^ k[i + 2] ^ k[i + 3] ^ ck[i]));
-        sk[i] = k[i + 4];
-    }
-
-}
-
 /*
  * SM4 standard one round processing
  */
@@ -249,40 +276,11 @@ static void sm4_one_round(uint32_t sk[32],
     PUT_UINT32_BE(b[32], output, 12);
 }
 
-#if !defined(MBEDTLS_SM4_SETKEY_ENC_ALT)
-/*
- * SM4 key schedule (128-bit, encryption)
- */
-int mbedtls_sm4_setkey_enc(mbedtls_sm4_context *ctx,
-        const unsigned char key[MBEDTLS_SM4_KEY_SIZE])
-{
-    sm4_setkey(ctx->sk, key);
-    return 0;
-}
-#endif /* !MBEDTLS_SM4_SETKEY_ENC_ALT */
-
-#if !defined(MBEDTLS_SM4_SETKEY_DEC_ALT)
-/*
- * SM4 key schedule (128-bit, decryption)
- */
-int mbedtls_sm4_setkey_dec(mbedtls_sm4_context *ctx,
-        const unsigned char key[MBEDTLS_SM4_KEY_SIZE])
-{
-    int i;
-    sm4_setkey(ctx->sk, key);
-    for (i = 0; i < MBEDTLS_SM4_KEY_SIZE; i++) {
-        SWAP(ctx->sk[i], ctx->sk[31 - i]);
-    }
-    return 0;
-}
-#endif /* !MBEDTLS_SM4_SETKEY_DEC_ALT */
-
-#if !defined(MBEDTLS_SM4_CRYPT_ECB_ALT)
 int mbedtls_sm4_crypt_ecb(mbedtls_sm4_context *ctx, int mode,
         const unsigned char input[MBEDTLS_SM4_KEY_SIZE],
         unsigned char output[MBEDTLS_SM4_KEY_SIZE])
 {
-    if (mode) {; }
+    ((void) mode);
     sm4_one_round(ctx->sk, input, output);
     return 0;
 }

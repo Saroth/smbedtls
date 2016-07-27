@@ -31,6 +31,32 @@
 
 #if !defined(MBEDTLS_SM2_ALT)
 
+#if !defined(MBEDTLS_SM2_CRYPT_ALT) || !defined(MBEDTLS_SM2_SIGN_ALT)
+/**
+ * Get random r in [1, n-1]
+ */
+static int sm2_get_rand(mbedtls_sm2_context *ctx, mbedtls_mpi *r,
+        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+{
+    int ret;
+    size_t blind_tries = 0;
+    size_t nlen;
+    do {
+        nlen = (ctx->grp.nbits + 7) / 8;
+        MBEDTLS_MPI_CHK(mbedtls_mpi_fill_random(r, nlen, f_rng, p_rng));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(r, 8 * nlen - ctx->grp.nbits));
+
+        /* See mbedtls_ecp_gen_keypair() */
+        if (++blind_tries > 30)
+            return (MBEDTLS_ERR_SM2_RANDOM_FAILED);
+    } while (mbedtls_mpi_cmp_int(r, 1) < 0 ||
+            mbedtls_mpi_cmp_mpi(r, &ctx->grp.N) >= 0);
+cleanup:
+    return (ret);
+}
+#endif /* !MBEDTLS_SM2_CRYPT_ALT || !MBEDTLS_SM2_SIGN_ALT */
+
+#if !defined(MBEDTLS_SM2_CRYPT_ALT)
 /**
  * SM2 KDF (ISO/IEC 15946-2 3.1.3)
  * (GM/T 0003-2012 - Part 3: Key Exchange Protocol 5.4.3)
@@ -100,29 +126,6 @@ static int mbedtls_sm2_pbkdf2(mbedtls_md_context_t *ctx,
     }
 
     return (0);
-}
-
-/**
- * Get random r in [1, n-1]
- */
-static int sm2_get_rand(mbedtls_sm2_context *ctx, mbedtls_mpi *r,
-        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
-{
-    int ret;
-    size_t blind_tries = 0;
-    size_t nlen;
-    do {
-        nlen = (ctx->grp.nbits + 7) / 8;
-        MBEDTLS_MPI_CHK(mbedtls_mpi_fill_random(r, nlen, f_rng, p_rng));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(r, 8 * nlen - ctx->grp.nbits));
-
-        /* See mbedtls_ecp_gen_keypair() */
-        if (++blind_tries > 30)
-            return (MBEDTLS_ERR_SM2_RANDOM_FAILED);
-    } while (mbedtls_mpi_cmp_int(r, 1) < 0 ||
-            mbedtls_mpi_cmp_mpi(r, &ctx->grp.N) >= 0);
-cleanup:
-    return (ret);
 }
 
 int mbedtls_sm2_encrypt(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
@@ -304,7 +307,9 @@ cleanup:
 
     return (ret);
 }
+#endif /* !MBEDTLS_SM2_CRYPT_ALT */
 
+#if !defined(MBEDTLS_SM2_SIGN_ALT)
 int mbedtls_sm2_sign(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
         const unsigned char *hash, unsigned char *sig,
         int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
@@ -530,7 +535,9 @@ cleanup:
 
     return (ret);
 }
+#endif /* !MBEDTLS_SM2_SIGN_ALT */
 
+#if !defined(MBEDTLS_SM2_GENKEY_ALT)
 /*
  * Generate key pair
  */
@@ -540,6 +547,7 @@ int mbedtls_sm2_genkey(mbedtls_sm2_context *ctx, mbedtls_ecp_group_id gid,
     return (mbedtls_ecp_group_load(&ctx->grp, gid) ||
             mbedtls_ecp_gen_keypair(&ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng));
 }
+#endif /* !MBEDTLS_SM2_GENKEY_ALT */
 
 #endif /* !MBEDTLS_SM2_ALT */
 

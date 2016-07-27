@@ -36,6 +36,8 @@ typedef enum {
     MBEDTLS_ECP_POINT_CONVERSION_HYBRID = 6
 } mbedtls_ecp_point_conversion_form_t;
 
+#if !defined(MBEDTLS_SM2_ALT)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -178,6 +180,18 @@ void mbedtls_sm2_init(mbedtls_sm2_context *ctx);
  * \param ctx       Context to free
  */
 void mbedtls_sm2_free(mbedtls_sm2_context *ctx);
+
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* MBEDTLS_SM2_ALT */
+#include "sm2_alt.h"
+#endif /* MBEDTLS_SM2_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief           Checkup routine
