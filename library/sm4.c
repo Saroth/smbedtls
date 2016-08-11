@@ -164,7 +164,7 @@ static uint32_t sm4_calc_rk(uint32_t ka)
     return rk;
 }
 
-void mbedtls_sm4_setkey(uint32_t sk[32],
+static void mbedtls_sm4_setkey(uint32_t sk[32],
         const unsigned char key[MBEDTLS_SM4_KEY_SIZE])
 {
     unsigned long mk[4];
@@ -184,7 +184,6 @@ void mbedtls_sm4_setkey(uint32_t sk[32],
         sk[i] = k[i + 4];
     }
 }
-#endif /* !MBEDTLS_SM4_SETKEY_ALT */
 
 /*
  * SM4 key schedule (128-bit, encryption)
@@ -209,6 +208,7 @@ int mbedtls_sm4_setkey_dec(mbedtls_sm4_context *ctx,
     }
     return 0;
 }
+#endif /* !MBEDTLS_SM4_SETKEY_ALT */
 
 #if !defined(MBEDTLS_SM4_CRYPT_ECB_ALT)
 /**

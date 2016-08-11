@@ -95,17 +95,6 @@ int mbedtls_sm4_crypt_cbc(mbedtls_sm4_context *ctx, int mode, size_t length,
         const unsigned char *input, unsigned char *output);
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-/**
- * \brief          Internal function for key expansion.
- *                 (Only exposed to allow overriding it,
- *                 see MBEDTLS_SM4_SETKEY_ALT)
- *
- * \param sk       Round keys
- * \param key      Base key
- */
-void mbedtls_sm4_setkey(uint32_t sk[32],
-        const unsigned char key[MBEDTLS_SM4_KEY_SIZE]);
-
 #ifdef __cplusplus
 }
 #endif

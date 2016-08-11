@@ -23,7 +23,7 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
-#include <stdlib.h>
+#include <stdio.h>
 #define mbedtls_calloc      calloc
 #define mbedtls_printf      printf
 #define mbedtls_free        free
@@ -505,6 +505,7 @@ cleanup:
 
     return (ret);
 }
+#endif /* !MBEDTLS_SM2_SIGN_ALT */
 
 int mbedtls_sm2_get_hash_zm(mbedtls_md_type_t md_alg, const unsigned char *z,
         const unsigned char *input, size_t ilen, unsigned char *output)
@@ -535,7 +536,6 @@ cleanup:
 
     return (ret);
 }
-#endif /* !MBEDTLS_SM2_SIGN_ALT */
 
 #if !defined(MBEDTLS_SM2_GENKEY_ALT)
 /*
@@ -578,6 +578,9 @@ void mbedtls_sm2_free(mbedtls_sm2_context *ctx)
 
 #if defined(MBEDTLS_SELF_TEST)
 
+/*
+ * SM2 test vectors from: GM/T 0003-2012 Chinese National Standard
+ */
 static const unsigned char sm2_test_plaintext[] = { // "encryption standard"
     0x65, 0x6E, 0x63, 0x72, 0x79, 0x70, 0x74, 0x69,
     0x6F, 0x6E, 0x20, 0x73, 0x74, 0x61, 0x6E, 0x64,
@@ -697,15 +700,25 @@ int mbedtls_sm2_self_test(int verbose)
     size_t olen;
 
     mbedtls_sm2_init(&ctx);
-    MBEDTLS_MPI_CHK(mbedtls_ecp_group_load(&ctx.grp, MBEDTLS_ECP_DP_SM2P256T1));
+    if ((ret = mbedtls_ecp_group_load(&ctx.grp,
+                    MBEDTLS_ECP_DP_SM2P256T1)) != 0) {
+        mbedtls_printf("load group failed\n");
+        goto cleanup;
+    }
 
     if( verbose != 0 )
         mbedtls_printf( "  SM2 key validation: " );
 
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&ctx.d,
-                sm2_test1_prik, sizeof(sm2_test1_prik)));
-    MBEDTLS_MPI_CHK(mbedtls_ecp_point_read_binary(&ctx.grp, &ctx.Q,
-            sm2_test1_pubk, sizeof(sm2_test1_pubk)));
+    if ((ret = mbedtls_mpi_read_binary(&ctx.d,
+                    sm2_test1_prik, sizeof(sm2_test1_prik))) != 0) {
+        mbedtls_printf("read private key1 failed\n");
+        goto cleanup;
+    }
+    if ((ret = mbedtls_ecp_point_read_binary(&ctx.grp, &ctx.Q,
+            sm2_test1_pubk, sizeof(sm2_test1_pubk))) != 0) {
+        mbedtls_printf("read public key1 failed\n");
+        goto cleanup;
+    }
 
     if (((ret = mbedtls_ecp_check_pubkey(&ctx.grp, &ctx.Q)) != 0) ||
             (ret = mbedtls_ecp_check_privkey(&ctx.grp, &ctx.d) != 0)) {
@@ -759,10 +772,16 @@ int mbedtls_sm2_self_test(int verbose)
         mbedtls_printf("passed\n  SM2 key validation: ");
     }
 
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&ctx.d,
-                sm2_test2_prik, sizeof(sm2_test2_prik)));
-    MBEDTLS_MPI_CHK(mbedtls_ecp_point_read_binary(&ctx.grp, &ctx.Q,
-            sm2_test2_pubk, sizeof(sm2_test2_pubk)));
+    if ((ret = mbedtls_mpi_read_binary(&ctx.d,
+                    sm2_test2_prik, sizeof(sm2_test2_prik))) != 0) {
+        mbedtls_printf("read private key2 failed\n");
+        goto cleanup;
+    }
+    if ((ret = mbedtls_ecp_point_read_binary(&ctx.grp, &ctx.Q,
+                    sm2_test2_pubk, sizeof(sm2_test2_pubk))) != 0) {
+        mbedtls_printf("read public key2 failed\n");
+        goto cleanup;
+    }
 
     if (((ret = mbedtls_ecp_check_pubkey(&ctx.grp, &ctx.Q)) != 0) ||
             (ret = mbedtls_ecp_check_privkey(&ctx.grp, &ctx.d) != 0)) {

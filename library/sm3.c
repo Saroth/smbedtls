@@ -90,7 +90,6 @@ void mbedtls_sm3_starts(mbedtls_sm3_context *ctx)
 }
 
 #if !defined(MBEDTLS_SM3_PROCESS_ALT)
-
 void mbedtls_sm3_process(mbedtls_sm3_context *ctx,
         const unsigned char data[64])
 {
