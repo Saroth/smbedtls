@@ -118,15 +118,16 @@ int mbedtls_sm2_verify(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
  * \param md_alg    Algorithm that was used to hash the message
  * \param id        User ID, character string.
  *                  GM/T 0009-2012 Public Key Infrastructure Application
- *                          Technology SM2 Cryptography Specification: 10:
+ *                      Technology SM2 Cryptography Specification: Section 10:
  *                      In the case Without specific agreement, the default ID
  *                      value is: "1234567812345678" (16 byte)
+ * \param idlen     User ID string length
  * \param z         Buffer that will hold the Z
  *
  * \return          0 if successful, or a error code
  */
 int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
-        const char *id, unsigned char *z);
+        const char *id, size_t idlen, unsigned char *z);
 
 /**
  * \brief           Compute digest by Z and message

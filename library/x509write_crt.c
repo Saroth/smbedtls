@@ -422,7 +422,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
         unsigned char z[MBEDTLS_MD_MAX_SIZE];
 
         if( ( ret = mbedtls_sm2_get_z( ctx->issuer_key->pk_ctx, ctx->md_alg,
-                        NULL, z ) ) != 0 )
+                        NULL, 0, z ) ) != 0 )
             return( ret );
         if( ( ret = mbedtls_sm2_get_hash_zm( ctx->md_alg, z, c, len, hash ) )
                 != 0 )

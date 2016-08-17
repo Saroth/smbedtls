@@ -445,7 +445,7 @@ cleanup:
 }
 
 int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
-        const char *id, unsigned char *z)
+        const char *id, size_t idlen, unsigned char *z)
 {
     int ret = 0;
     unsigned char * m = NULL;
@@ -453,13 +453,13 @@ int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
     size_t mlen;
     size_t l;
     const char * def_id = MBEDTLS_SM2_GMT09_DEFAULT_ID;
-    size_t def_id_len;
+    size_t def_id_len = strlen(def_id);
     const mbedtls_md_info_t * md_info = NULL;
 
     if (id != NULL) {
         def_id = (char *)id;
+        def_id_len = idlen;
     }
-    def_id_len = strlen(def_id);
     md_info = mbedtls_md_info_from_type(md_alg);
     if (md_info == NULL) {
         MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_BAD_INPUT_DATA);
@@ -797,7 +797,7 @@ int mbedtls_sm2_self_test(int verbose)
     }
 
     if ((ret = mbedtls_sm2_get_z(&ctx, MBEDTLS_MD_SM3,
-                    sm2_test_ID, output)) != 0) {
+                    sm2_test_ID, sizeof(sm2_test_ID), output)) != 0) {
         if (verbose != 0) {
             mbedtls_printf( "failed\n" );
         }

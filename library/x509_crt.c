@@ -1685,7 +1685,7 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             unsigned char z[MBEDTLS_MD_MAX_SIZE];
 
             if( ( ret = mbedtls_sm2_get_z( ca->pk.pk_ctx, crl_list->sig_md,
-                            NULL, z ) ) != 0 )
+                            NULL, 0, z ) ) != 0 )
                 return( ret );
             if( ( ret = mbedtls_sm2_get_hash_zm( crl_list->sig_md,
                             z, crl_list->tbs.p, crl_list->tbs.len, hash ) ) != 0 )
@@ -1975,7 +1975,7 @@ static int x509_crt_verify_top(
         unsigned char z[MBEDTLS_MD_MAX_SIZE];
 
         if( ( ret = mbedtls_sm2_get_z( trust_ca->pk.pk_ctx, child->sig_md,
-                        NULL, z ) ) != 0 )
+                        NULL, 0, z ) ) != 0 )
             return( ret );
         if( ( ret = mbedtls_sm2_get_hash_zm( child->sig_md,
                         z, child->tbs.p, child->tbs.len, hash ) ) != 0 )
@@ -2143,7 +2143,7 @@ static int x509_crt_verify_child(
             unsigned char z[MBEDTLS_MD_MAX_SIZE];
 
             if( ( ret = mbedtls_sm2_get_z( parent->pk.pk_ctx, child->sig_md,
-                            NULL, z ) ) != 0 )
+                            NULL, 0, z ) ) != 0 )
                 return( ret );
             if( ( ret = mbedtls_sm2_get_hash_zm( child->sig_md,
                             z, child->tbs.p, child->tbs.len, hash ) ) != 0 )
