@@ -167,8 +167,7 @@ int mbedtls_sm2_encrypt(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
         *olen += mbedtls_mpi_size(&point.Y);
 
         /* A3: check [h]P != O */
-        MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&h,
-                    (const unsigned char *)"\x01", 1));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&h, 1));
         MBEDTLS_MPI_CHK(mbedtls_ecp_mul(&ctx->grp, &point, &h, &ctx->Q,
                     NULL, NULL));
         MBEDTLS_MPI_CHK(mbedtls_ecp_is_zero(&point));
@@ -251,8 +250,7 @@ int mbedtls_sm2_decrypt(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
                 input, c1len));
 
     /* B2: check [h]C1 != O */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&h,
-                (const unsigned char *)"\x01", 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&h, 1));
     MBEDTLS_MPI_CHK(mbedtls_ecp_mul(&ctx->grp, &point, &h, &C1, NULL, NULL));
     MBEDTLS_MPI_CHK(mbedtls_ecp_is_zero(&point));
 
@@ -405,7 +403,7 @@ int mbedtls_sm2_verify(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
             mbedtls_mpi_cmp_mpi(&r, &ctx->grp.N) >= 0 ||
             mbedtls_mpi_cmp_int(&s, 1) < 0 ||
             mbedtls_mpi_cmp_mpi(&s, &ctx->grp.N) >= 0) {
-        MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_BAD_SIGNATURE);
+        MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_BAD_SIGNATURE - 1);
     }
 
     /**
@@ -420,7 +418,7 @@ int mbedtls_sm2_verify(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
     MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(&t, &r, &s));
     MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&t, &t, &ctx->grp.N));
     if (mbedtls_mpi_cmp_int(&t, 0) == 0) {
-        MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_BAD_SIGNATURE);
+        MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_BAD_SIGNATURE - 2);
     }
 
     /* B6: (x1, y1) = [s]G + [t]P */
@@ -428,10 +426,11 @@ int mbedtls_sm2_verify(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
                 &s, &ctx->grp.G, &t, &ctx->Q));
 
     /* B7: R = (e + x1) mod n; if (R == r) Success; else Failed; */
+    mbedtls_mpi_init(&t);
     MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(&t, &e, &point.X));
     MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&t, &t, &ctx->grp.N));
     if (mbedtls_mpi_cmp_mpi(&t, &r) != 0) {
-        MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_BAD_SIGNATURE);
+        MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_BAD_SIGNATURE - 3);
     }
 
 cleanup:
@@ -472,11 +471,9 @@ int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
         MBEDTLS_MPI_CHK(MBEDTLS_ERR_SM2_ALLOC_FAILED);
     }
 
-    p = m;
-    p[0] = (def_id_len * 8) / 0xFF;
-    p++;
-    p[0] = (def_id_len * 8) % 0xFF;
-    p++;
+    m[0] = (def_id_len >> 5) & 0xFF;
+    m[1] = (def_id_len << 3) & 0xFF;
+    p = m + 2;
     memmove(p, def_id, def_id_len);
     p += def_id_len;
     l = mbedtls_mpi_size(&ctx->grp.A);
