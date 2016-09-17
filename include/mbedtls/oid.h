@@ -400,22 +400,22 @@
 #define MBEDTLS_OID_EC_SM2P256R1            MBEDTLS_OID_GM_SM2
 /* sm2-with-sm3 OBJECT IDENTIFIER ::= {
  * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sm3(501) } */
-#define MBEDTLS_OID_SM2_SM3                 MBEDTLS_OID_GM_SM2 "\x83\x75"
+#define MBEDTLS_OID_SM2_SM3                 MBEDTLS_OID_GM "\x83\x75"
 /* sm2-with-sha1 OBJECT IDENTIFIER ::= {
  * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sha1(502) } */
-#define MBEDTLS_OID_SM2_SHA1                MBEDTLS_OID_GM_SM2 "\x83\x76"
+#define MBEDTLS_OID_SM2_SHA1                MBEDTLS_OID_GM "\x83\x76"
 /* sm2-with-sha256 OBJECT IDENTIFIER ::= {
  * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sha256(503) } */
-#define MBEDTLS_OID_SM2_SHA256              MBEDTLS_OID_GM_SM2 "\x83\x77"
+#define MBEDTLS_OID_SM2_SHA256              MBEDTLS_OID_GM "\x83\x77"
 /* sm2-with-sha512 OBJECT IDENTIFIER ::= {
  * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sha512(504) } */
-#define MBEDTLS_OID_SM2_SHA512              MBEDTLS_OID_GM_SM2 "\x83\x78"
+#define MBEDTLS_OID_SM2_SHA512              MBEDTLS_OID_GM "\x83\x78"
 /* sm2-with-sha224 OBJECT IDENTIFIER ::= {
  * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sha224(505) } */
-#define MBEDTLS_OID_SM2_SHA224              MBEDTLS_OID_GM_SM2 "\x83\x79"
+#define MBEDTLS_OID_SM2_SHA224              MBEDTLS_OID_GM "\x83\x79"
 /* sm2-with-sha384 OBJECT IDENTIFIER ::= {
  * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm2-with-sha384(506) } */
-#define MBEDTLS_OID_SM2_SHA384              MBEDTLS_OID_GM_SM2 "\x83\x7A"
+#define MBEDTLS_OID_SM2_SHA384              MBEDTLS_OID_GM "\x83\x7A"
 
 /* sm3 OBJECT IDENTIFIER ::= {
  * iso(1) member-body(2) cn(156) sca(10197) gm(1) sm3(401) 1 } */
