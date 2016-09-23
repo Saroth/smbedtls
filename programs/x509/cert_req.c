@@ -324,7 +324,7 @@ int main( int argc, char *argv[] )
         mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned %d", ret );
         goto exit;
     }
-    if( mbedtls_pk_change_key_type( &key, opt.pk_alg ) )
+    if( ( ret = mbedtls_pk_change_key_type( &key, opt.pk_alg ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
         mbedtls_printf( " failed\n  !  mbedtls_pk_change_key_type returned"

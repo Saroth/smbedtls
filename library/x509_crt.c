@@ -834,6 +834,11 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
         mbedtls_x509_crt_free( crt );
         return( ret );
     }
+    if( ( ret = mbedtls_pk_change_key_type( &crt->pk, crt->sig_pk ) ) != 0 )
+    {
+        mbedtls_x509_crt_free( crt );
+        return( ret );
+    }
 
     /*
      *  issuerUniqueID  [1]  IMPLICIT UniqueIdentifier OPTIONAL,
@@ -907,10 +912,23 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
         return( MBEDTLS_ERR_X509_SIG_MISMATCH );
     }
 
-    if( ( ret = mbedtls_x509_get_sig( &p, end, &crt->sig ) ) != 0 )
+#if defined(MBEDTLS_SM2_C)
+    if( crt->sig_pk == MBEDTLS_PK_SM2 )
     {
-        mbedtls_x509_crt_free( crt );
-        return( ret );
+        if( ( ret = mbedtls_x509_get_sm2_sig( &p, end, &crt->sig ) ) != 0 )
+        {
+            mbedtls_x509_crt_free( crt );
+            return( ret );
+        }
+    }
+    else
+#endif /* MBEDTLS_SM2_C */
+    {
+        if( ( ret = mbedtls_x509_get_sig( &p, end, &crt->sig ) ) != 0 )
+        {
+            mbedtls_x509_crt_free( crt );
+            return( ret );
+        }
     }
 
     if( p != end )

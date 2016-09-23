@@ -647,6 +647,75 @@ int mbedtls_x509_get_sig( unsigned char **p, const unsigned char *end, mbedtls_x
     return( 0 );
 }
 
+#if defined(MBEDTLS_SM2_C)
+int mbedtls_x509_get_sm2_sig( unsigned char **p, const unsigned char *end,
+        mbedtls_x509_buf *sig )
+{
+    int ret;
+    size_t len;
+    mbedtls_mpi r;
+    mbedtls_mpi s;
+    unsigned char *p_sign = *p;
+    size_t sig_len;
+    const unsigned char *end2;
+
+    if( ( end - *p ) < 1 )
+        return( MBEDTLS_ERR_X509_INVALID_SIGNATURE +
+                MBEDTLS_ERR_ASN1_OUT_OF_DATA );
+
+    if( ( ret = mbedtls_asn1_get_bitstring_null( p, end, &len ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_SIGNATURE + ret );
+    end2 = *p + len;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end2, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_SIGNATURE + ret );
+    }
+    end2 = *p + len;
+
+    mbedtls_mpi_init( &r );
+    mbedtls_mpi_init( &s );
+    do {
+        if( ( ret = mbedtls_asn1_get_mpi( p, end2, &r ) ) )
+        {
+            ret += MBEDTLS_ERR_X509_INVALID_SIGNATURE;
+            break;
+        }
+        if( ( ret = mbedtls_asn1_get_mpi( p, end2, &s ) ) )
+        {
+            ret += MBEDTLS_ERR_X509_INVALID_SIGNATURE;
+            break;
+        }
+
+        len = 0;
+
+        sig_len = mbedtls_mpi_size( &r );
+        if( ( ret = mbedtls_mpi_write_binary( &r, p_sign, sig_len ) ) )
+        {
+            ret += MBEDTLS_ERR_X509_INVALID_SIGNATURE;
+            break;
+        }
+        len += sig_len;
+
+        sig_len = mbedtls_mpi_size( &s );
+        if( ( ret = mbedtls_mpi_write_binary( &s, p_sign + len, sig_len ) ) )
+        {
+            ret += MBEDTLS_ERR_X509_INVALID_SIGNATURE;
+            break;
+        }
+        len += sig_len;
+
+        sig->len = len;
+        sig->p = p_sign;
+    } while( 0 );
+    mbedtls_mpi_free( &r );
+    mbedtls_mpi_free( &s );
+
+    return( ret );
+}
+#endif /* MBEDTLS_SM2_C */
+
 /*
  * Get signature algorithm from alg OID and optional parameters
  */

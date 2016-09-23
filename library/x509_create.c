@@ -283,6 +283,59 @@ int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
     return( (int) len );
 }
 
+#if defined(MBEDTLS_SM2_C)
+int mbedtls_x509_write_sm2_sig( unsigned char **p, unsigned char *start,
+        const char *oid, size_t oid_len, unsigned char *sig, size_t size)
+{
+    int ret;
+    size_t len = 0;
+    mbedtls_mpi r;
+    mbedtls_mpi s;
+
+    if( *p < start || (size_t)( *p - start ) < size )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+    if( size % 2 )
+        return( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
+
+    size /= 2;
+    mbedtls_mpi_init( &r );
+    mbedtls_mpi_init( &s );
+    do {
+        if( ( ret = mbedtls_mpi_read_binary( &r, sig, size ) ) )
+            break;
+        if( ( ret = mbedtls_mpi_read_binary( &s, sig + size, size ) ) )
+            break;
+
+        if( ( ret = mbedtls_asn1_write_mpi( p, start, &s ) ) < 0 )
+            break;
+        len += ret;
+        if( ( ret = mbedtls_asn1_write_mpi( p, start, &r ) ) < 0 )
+            break;
+        len += ret;
+    } while (0);
+    mbedtls_mpi_free( &r );
+    mbedtls_mpi_free( &s );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    *--(*p) = 0;
+    len += 1;
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start,
+                MBEDTLS_ASN1_BIT_STRING ) );
+
+    // Write OID
+    //
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_algorithm_identifier( p,
+                start, oid, oid_len, 0 ) );
+
+    return( (int) len );
+}
+#endif /* MBEDTLS_SM2_C */
+
 static int x509_write_extension( unsigned char **p, unsigned char *start,
                                  mbedtls_asn1_named_data *ext )
 {

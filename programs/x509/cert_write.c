@@ -700,7 +700,8 @@ int main( int argc, char *argv[] )
                             "returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
-        if( mbedtls_pk_change_key_type( &loaded_subject_key, opt.subject_pk_alg ) )
+        if( ( ret = mbedtls_pk_change_key_type( &loaded_subject_key,
+                        opt.subject_pk_alg ) ) != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
             mbedtls_printf( " failed\n  !  mbedtls_pk_change_key_type returned"
@@ -723,7 +724,8 @@ int main( int argc, char *argv[] )
                         "returned -x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
-    if( mbedtls_pk_change_key_type( &loaded_issuer_key, opt.issuer_pk_alg ) )
+    if( ( ret = mbedtls_pk_change_key_type( &loaded_issuer_key,
+                    opt.issuer_pk_alg ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
         mbedtls_printf( " failed\n  !  mbedtls_pk_change_key_type returned"

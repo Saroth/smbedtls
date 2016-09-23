@@ -417,7 +417,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
      * Make signature
      */
 #if defined(MBEDTLS_SM2_C)
-    if( mbedtls_pk_get_type( ctx->issuer_key ) == MBEDTLS_PK_SM2 )
+    if( pk_alg == MBEDTLS_PK_SM2 )
     {
         unsigned char z[MBEDTLS_MD_MAX_SIZE];
 
@@ -444,8 +444,18 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
      * Write data to output buffer
      */
     c2 = buf + size;
-    MBEDTLS_ASN1_CHK_ADD( sig_and_oid_len, mbedtls_x509_write_sig( &c2, buf,
-                                        sig_oid, sig_oid_len, sig, sig_len ) );
+#if defined(MBEDTLS_SM2_C)
+    if( pk_alg == MBEDTLS_PK_SM2 )
+    {
+        MBEDTLS_ASN1_CHK_ADD( sig_and_oid_len, mbedtls_x509_write_sm2_sig( &c2,
+                    buf, sig_oid, sig_oid_len, sig, sig_len ) );
+    }
+    else
+#endif /* MBEDTLS_SM2_C */
+    {
+        MBEDTLS_ASN1_CHK_ADD( sig_and_oid_len, mbedtls_x509_write_sig( &c2, buf,
+                    sig_oid, sig_oid_len, sig, sig_len ) );
+    }
 
     if( len > (size_t)( c2 - buf ) )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
