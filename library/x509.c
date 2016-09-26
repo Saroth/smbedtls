@@ -655,7 +655,7 @@ int mbedtls_x509_get_sm2_sig( unsigned char **p, const unsigned char *end,
     size_t len;
     mbedtls_mpi r;
     mbedtls_mpi s;
-    unsigned char *p_sign = *p;
+    unsigned char *p_sign;
     size_t sig_len;
     const unsigned char *end2;
 
@@ -688,26 +688,34 @@ int mbedtls_x509_get_sm2_sig( unsigned char **p, const unsigned char *end,
             break;
         }
 
-        len = 0;
+        p_sign = *p;
 
         sig_len = mbedtls_mpi_size( &r );
+        if( sig_len > (size_t) ( end - p_sign ) ) {
+            ret += MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+            break;
+        }
         if( ( ret = mbedtls_mpi_write_binary( &r, p_sign, sig_len ) ) )
         {
             ret += MBEDTLS_ERR_X509_INVALID_SIGNATURE;
             break;
         }
-        len += sig_len;
+        p_sign += sig_len;
 
         sig_len = mbedtls_mpi_size( &s );
-        if( ( ret = mbedtls_mpi_write_binary( &s, p_sign + len, sig_len ) ) )
+        if( sig_len > (size_t) ( end - p_sign ) ) {
+            ret += MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+            break;
+        }
+        if( ( ret = mbedtls_mpi_write_binary( &s, p_sign, sig_len ) ) )
         {
             ret += MBEDTLS_ERR_X509_INVALID_SIGNATURE;
             break;
         }
-        len += sig_len;
+        p_sign += sig_len;
 
-        sig->len = len;
-        sig->p = p_sign;
+        sig->len = p_sign - *p;
+        sig->p = *p;
     } while( 0 );
     mbedtls_mpi_free( &r );
     mbedtls_mpi_free( &s );

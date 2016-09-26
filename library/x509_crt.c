@@ -716,7 +716,8 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
 
     // Create and populate a new buffer for the raw field
     crt->raw.len = crt_end - buf;
-    crt->raw.p = p = mbedtls_calloc( 1, crt->raw.len );
+    crt->raw.p = p = mbedtls_calloc( 1, crt->raw.len +
+            MBEDTLS_X509_RESERVE_BUFFER_SIZE );
     if( p == NULL )
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
 
@@ -915,7 +916,8 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
 #if defined(MBEDTLS_SM2_C)
     if( crt->sig_pk == MBEDTLS_PK_SM2 )
     {
-        if( ( ret = mbedtls_x509_get_sm2_sig( &p, end, &crt->sig ) ) != 0 )
+        if( ( ret = mbedtls_x509_get_sm2_sig( &p, end +
+                        MBEDTLS_X509_RESERVE_BUFFER_SIZE, &crt->sig ) ) != 0 )
         {
             mbedtls_x509_crt_free( crt );
             return( ret );

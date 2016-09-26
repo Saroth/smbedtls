@@ -168,6 +168,7 @@
 #define MBEDTLS_X509_FORMAT_PEM                 2
 
 #define MBEDTLS_X509_MAX_DN_NAME_SIZE         256 /**< Maximum value size of a DN entry */
+#define MBEDTLS_X509_RESERVE_BUFFER_SIZE      128 /**< Reserve size of the raw field */
 
 #ifdef __cplusplus
 extern "C" {
