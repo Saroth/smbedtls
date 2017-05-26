@@ -128,8 +128,8 @@ void mbedtls_sm3_process(mbedtls_sm3_context *ctx,
 #define GG1(x,y,z) (((x) & (y)) | ( (~(x)) & (z)) )
 
 
-#define  SHL(x,n) (((x) & 0xFFFFFFFF) << n)
-#define ROTL(x,n) (SHL((x),n) | ((x) >> (32 - n)))
+#define  SHL(x,n) (((x) & 0xFFFFFFFF) << (n % 32))
+#define ROTL(x,n) (SHL((x),n) | ((x) >> (32 - (n % 32))))
 
 #define P0(x) ((x) ^  ROTL((x),9) ^ ROTL((x),17))
 #define P1(x) ((x) ^  ROTL((x),15) ^ ROTL((x),23))
