@@ -438,7 +438,7 @@ static const oid_pk_alg_t oid_pk_alg[] =
         MBEDTLS_PK_ECDSA,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_GM_SM2 ),               "id-sm2",    "SM2" },
+        { ADD_LEN( MBEDTLS_OID_EC_ALG_UNRESTRICTED ),  "id-sm2",    "SM2" },
         MBEDTLS_PK_SM2,
     },
     {
