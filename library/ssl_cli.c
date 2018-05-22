@@ -662,9 +662,9 @@ static int ssl_validate_ciphersuite( const mbedtls_ssl_ciphersuite_t * suite_inf
     if( suite_info->min_major_ver > ssl->conf->max_major_ver ||
             suite_info->max_major_ver < ssl->conf->min_major_ver ||
             ( suite_info->min_major_ver == ssl->conf->max_major_ver &&
-              suite_info->min_minor_ver > ssl->conf->max_minor_ver ) ||
+              suite_info->min_minor_ver > max_minor_ver ) ||
             ( suite_info->max_major_ver == ssl->conf->min_major_ver &&
-              suite_info->max_minor_ver < ssl->conf->min_minor_ver ) )
+              suite_info->max_minor_ver < min_minor_ver ) )
         return( 1 );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

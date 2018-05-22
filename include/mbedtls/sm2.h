@@ -112,7 +112,7 @@ int mbedtls_sm2_verify(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
         const unsigned char *hash, const unsigned char *sig);
 
 /**
- * \brief           Compute Z by id
+ * \brief           Hash Z with ID and public key
  *
  * \param ctx       SM2 context
  * \param md_alg    Algorithm that was used to hash the message
@@ -126,22 +126,22 @@ int mbedtls_sm2_verify(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
  *
  * \return          0 if successful, or a error code
  */
-int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
+int mbedtls_sm2_hash_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
         const char *id, size_t idlen, unsigned char *z);
 
 /**
- * \brief           Compute digest by Z and message
+ * \brief           Hash E with Z and message
  *
  * \param md_alg    Algorithm that was used to hash the message
- * \param z         The Z computed by mbedtls_sm2_get_z
+ * \param z         Z computed by mbedtls_sm2_hash_z
  * \param input     buffer holding the data
  * \param ilen      length of the input data
- * \param output    Generic message digest checksum result
+ * \param e         Buffer that will hold the E
  *
  * \return          0 if successful, or a error code
  */
-int mbedtls_sm2_get_hash_zm(mbedtls_md_type_t md_alg, const unsigned char *z,
-        const unsigned char *input, size_t ilen, unsigned char *output);
+int mbedtls_sm2_hash_e(mbedtls_md_type_t md_alg, const unsigned char *z,
+        const unsigned char *input, size_t ilen, unsigned char *e);
 
 /**
  * \brief           Generate an SM2 keypair on the given curve

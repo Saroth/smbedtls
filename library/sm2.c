@@ -84,8 +84,7 @@ static int mbedtls_sm2_pbkdf2(mbedtls_md_context_t *ctx,
         return (MBEDTLS_ERR_SM2_BAD_INPUT_DATA);
 
     while (key_length) {
-        // U1 ends up in work
-        //
+        /* U1 ends up in work */
         if ((ret = mbedtls_md_starts(ctx)) != 0)
             return ret;
         if ((ret = mbedtls_md_update(ctx, password, plen)) != 0)
@@ -100,8 +99,7 @@ static int mbedtls_sm2_pbkdf2(mbedtls_md_context_t *ctx,
         memcpy(md1, work, md_size);
 
         for (i = 1; i < iteration_count; i++) {
-            // U2 ends up in md1
-            //
+            /* U2 ends up in md1 */
             if ((ret = mbedtls_md_hmac_starts(ctx, password, plen)) != 0)
                 return (ret);
             if ((ret = mbedtls_md_hmac_update(ctx, md1, md_size)) != 0)
@@ -109,8 +107,7 @@ static int mbedtls_sm2_pbkdf2(mbedtls_md_context_t *ctx,
             if ((ret = mbedtls_md_hmac_finish(ctx, md1)) != 0)
                 return (ret);
 
-            // U1 xor U2
-            //
+            /* U1 xor U2 */
             for (j = 0; j < md_size; j++)
                 work[j] ^= md1[j];
         }
@@ -443,7 +440,7 @@ cleanup:
     return (ret);
 }
 
-int mbedtls_sm2_get_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
+int mbedtls_sm2_hash_z(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
         const char *id, size_t idlen, unsigned char *z)
 {
     int ret = 0;
@@ -505,8 +502,8 @@ cleanup:
 }
 #endif /* !MBEDTLS_SM2_SIGN_ALT */
 
-int mbedtls_sm2_get_hash_zm(mbedtls_md_type_t md_alg, const unsigned char *z,
-        const unsigned char *input, size_t ilen, unsigned char *output)
+int mbedtls_sm2_hash_e(mbedtls_md_type_t md_alg, const unsigned char *z,
+        const unsigned char *input, size_t ilen, unsigned char *e)
 {
     int ret = 0;
     const mbedtls_md_info_t * md_info = NULL;
@@ -526,7 +523,7 @@ int mbedtls_sm2_get_hash_zm(mbedtls_md_type_t md_alg, const unsigned char *z,
         return ret;
     if ((ret = mbedtls_md_update(&md_ctx, input, ilen)) != 0)
         return ret;
-    if ((ret = mbedtls_md_finish(&md_ctx, output)) != 0)
+    if ((ret = mbedtls_md_finish(&md_ctx, e)) != 0)
         return ret;
 
 cleanup:
@@ -579,7 +576,7 @@ void mbedtls_sm2_free(mbedtls_sm2_context *ctx)
 /*
  * SM2 test vectors from: GM/T 0003-2012 Chinese National Standard
  */
-static const unsigned char sm2_test_plaintext[] = { // "encryption standard"
+static const unsigned char sm2_test_plaintext[] = { /* "encryption standard" */
     0x65, 0x6E, 0x63, 0x72, 0x79, 0x70, 0x74, 0x69,
     0x6F, 0x6E, 0x20, 0x73, 0x74, 0x61, 0x6E, 0x64,
     0x61, 0x72, 0x64,
@@ -627,7 +624,7 @@ static const unsigned char sm2_test1_rand_fix[] = {
     0x18, 0xE5, 0x38, 0x8D, 0x49, 0xDD, 0x7B, 0x4F,
 };
 
-static const unsigned char sm2_test_messagetext[] = {   // message digest
+static const unsigned char sm2_test_messagetext[] = {   /* message digest */
     0x6D, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20,
     0x64, 0x69, 0x67, 0x65, 0x73, 0x74,
 };
@@ -656,7 +653,7 @@ static const unsigned char sm2_test2_pubk[] = {
     0x07, 0x35, 0x3E, 0x53, 0xA1, 0x76, 0xD6, 0x84,
     0xA9, 0xFE, 0x0C, 0x6B, 0xB7, 0x98, 0xE8, 0x57,
 };
-static const char sm2_test_ID[] = {            // ALICE123@YAHOO.COM
+static const char sm2_test_ID[] = {            /* "ALICE123@YAHOO.COM" */
     0x41, 0x4C, 0x49, 0x43, 0x45, 0x31, 0x32, 0x33,
     0x40, 0x59, 0x41, 0x48, 0x4F, 0x4F, 0x2E, 0x43,
     0x4F, 0x4D,
@@ -793,7 +790,7 @@ int mbedtls_sm2_self_test(int verbose)
         mbedtls_printf("passed\n  SM2 Get Z: ");
     }
 
-    if ((ret = mbedtls_sm2_get_z(&ctx, MBEDTLS_MD_SM3,
+    if ((ret = mbedtls_sm2_hash_z(&ctx, MBEDTLS_MD_SM3,
                     sm2_test_ID, sizeof(sm2_test_ID), output)) != 0) {
         if (verbose != 0) {
             mbedtls_printf( "failed\n" );
@@ -812,7 +809,7 @@ int mbedtls_sm2_self_test(int verbose)
         mbedtls_printf("passed\n  SM2 Get hash: ");
     }
 
-    if ((ret = mbedtls_sm2_get_hash_zm(MBEDTLS_MD_SM3,
+    if ((ret = mbedtls_sm2_hash_e(MBEDTLS_MD_SM3,
                     sm2_test_z, sm2_test_messagetext,
                     sizeof(sm2_test_messagetext), output)) != 0) {
         if (verbose != 0) {
