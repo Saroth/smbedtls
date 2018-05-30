@@ -500,7 +500,6 @@ cleanup:
 
     return (ret);
 }
-#endif /* !MBEDTLS_SM2_SIGN_ALT */
 
 int mbedtls_sm2_hash_e(mbedtls_md_type_t md_alg, const unsigned char *z,
         const unsigned char *input, size_t ilen, unsigned char *e)
@@ -531,6 +530,7 @@ cleanup:
 
     return (ret);
 }
+#endif /* !MBEDTLS_SM2_SIGN_ALT */
 
 #if !defined(MBEDTLS_SM2_GENKEY_ALT)
 /*
@@ -543,8 +543,6 @@ int mbedtls_sm2_genkey(mbedtls_sm2_context *ctx, mbedtls_ecp_group_id gid,
             mbedtls_ecp_gen_keypair(&ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng));
 }
 #endif /* !MBEDTLS_SM2_GENKEY_ALT */
-
-#endif /* !MBEDTLS_SM2_ALT */
 
 int mbedtls_sm2_from_keypair(mbedtls_sm2_context *ctx,
         const mbedtls_ecp_keypair *key)
@@ -570,6 +568,8 @@ void mbedtls_sm2_free(mbedtls_sm2_context *ctx)
 {
     mbedtls_ecp_keypair_free(ctx);
 }
+
+#endif /* !MBEDTLS_SM2_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 
