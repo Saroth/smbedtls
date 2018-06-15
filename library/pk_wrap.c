@@ -411,14 +411,11 @@ static int sm2_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
-    mbedtls_md_type_t md_type = md_alg;
-
     if( hash_len != mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) )
             || sig_len <= 0 )
         return( MBEDTLS_ERR_ECP_VERIFY_FAILED );
-    md_type = MBEDTLS_SM2_SPECIFIC_MD_ALGORITHM;
 
-    return mbedtls_sm2_verify( (mbedtls_sm2_context *) ctx, md_type, hash, sig );
+    return mbedtls_sm2_verify( (mbedtls_sm2_context *) ctx, md_alg, hash, sig );
 }
 
 static int sm2_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
@@ -427,13 +424,11 @@ static int sm2_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
-    mbedtls_md_type_t md_type = md_alg;
 
     if( hash_len != mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) )
             || sig_len == NULL )
         return( MBEDTLS_ERR_SM2_BAD_INPUT_DATA );
-    md_type = MBEDTLS_SM2_SPECIFIC_MD_ALGORITHM;
-    ret = mbedtls_sm2_sign( (mbedtls_sm2_context *) ctx, md_type, hash, sig,
+    ret = mbedtls_sm2_sign( (mbedtls_sm2_context *) ctx, md_alg, hash, sig,
             f_rng, p_rng );
     if( ret == 0 )
         *sig_len = ( ((mbedtls_sm2_context *) ctx)->grp.nbits + 7 ) / 8 * 2;
@@ -450,8 +445,9 @@ static int sm2_decrypt_wrap( void *ctx,
     size_t addlen = 1 +
         ( ((mbedtls_sm2_context *) ctx)->grp.nbits + 7 ) / 8 * 2 +
         mbedtls_md_get_size( mbedtls_md_info_from_type( md_type ) );
+    ((void) f_rng);
+    ((void) p_rng);
 
-    if( f_rng || p_rng ) {  }           // Unused parameters
     if( ilen < addlen || osize < (ilen - addlen) )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     return mbedtls_sm2_decrypt( (mbedtls_sm2_context *) ctx, md_type,
@@ -479,14 +475,14 @@ static void *sm2_alloc_wrap( void )
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sm2_context ) );
 
     if( ctx != NULL )
-        memset( ctx, 0, sizeof( mbedtls_sm2_context ) );
+        mbedtls_sm2_init( (mbedtls_sm2_context *) ctx );
 
     return( ctx );
 }
 
 static void sm2_free_wrap( void *ctx )
 {
-    mbedtls_zeroize( ctx, sizeof( mbedtls_sm2_context ) );
+    mbedtls_sm2_free( (mbedtls_sm2_context *) ctx );
     mbedtls_free( ctx );
 }
 

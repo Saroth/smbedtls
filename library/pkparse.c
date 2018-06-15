@@ -1348,39 +1348,37 @@ int mbedtls_pk_change_key_type( mbedtls_pk_context *pk, mbedtls_pk_type_t pk_alg
     const mbedtls_pk_info_t *pk_info;
 
     if( pk_alg == MBEDTLS_PK_NONE || mbedtls_pk_can_do( pk, pk_alg ) )
-    {
         return 0;
-    }
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_ECKEY )
     {
-        mbedtls_ecp_keypair *key = mbedtls_pk_ec(*pk);
+        mbedtls_ecp_keypair *key = mbedtls_pk_ec( *pk );
 
         if( ( pk_info = mbedtls_pk_info_from_type( pk_alg ) ) == NULL )
             return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
         mbedtls_pk_init( pk );
-        if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 )
-            return( ret );
-
-#if defined(MBEDTLS_ECDSA_C)
-        if( pk_alg == MBEDTLS_PK_ECDSA )
+        if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) == 0 )
         {
-            if( ( ret = mbedtls_ecdsa_from_keypair( mbedtls_pk_ec(*pk), key ) ) )
-                mbedtls_ecdsa_free( mbedtls_pk_ec(*pk) );
-        }
-        else
+#if defined(MBEDTLS_ECDSA_C)
+            if( pk_alg == MBEDTLS_PK_ECDSA )
+            {
+                if( ( ret = mbedtls_ecdsa_from_keypair( mbedtls_pk_ec( *pk ), key ) ) )
+                    mbedtls_ecdsa_free( mbedtls_pk_ec( *pk ) );
+            }
+            else
 #endif /* MBEDTLS_ECDSA_C */
 #if defined(MBEDTLS_SM2_C)
-        if( pk_alg == MBEDTLS_PK_SM2 )
-        {
-            if( ( ret = mbedtls_sm2_from_keypair( mbedtls_pk_ec(*pk), key ) ) )
-                mbedtls_sm2_free( mbedtls_pk_ec(*pk) );
-        }
-        else
+            if( pk_alg == MBEDTLS_PK_SM2 )
+            {
+                if( ( ret = mbedtls_sm2_from_keypair( mbedtls_pk_ec( *pk ), key ) ) )
+                    mbedtls_sm2_free( mbedtls_pk_ec( *pk ) );
+            }
+            else
 #endif /* MBEDTLS_SM2_C */
-            return( MBEDTLS_ERR_PK_INVALID_ALG );
-
-        mbedtls_ecp_keypair_free(key);
+                ret = MBEDTLS_ERR_PK_INVALID_ALG;
+        }
+        mbedtls_ecp_keypair_free( key );
+        mbedtls_free( key );
     }
     else
         ret = MBEDTLS_ERR_PK_TYPE_MISMATCH;
