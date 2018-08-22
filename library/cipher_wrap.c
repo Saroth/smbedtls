@@ -37,6 +37,10 @@
 #include "mbedtls/aes.h"
 #endif
 
+#if defined(MBEDTLS_ARC2_C)
+#include "mbedtls/arc2.h"
+#endif
+
 #if defined(MBEDTLS_ARC4_C)
 #include "mbedtls/arc4.h"
 #endif
@@ -1216,6 +1220,90 @@ static const mbedtls_cipher_info_t blowfish_ctr_info = {
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 #endif /* MBEDTLS_BLOWFISH_C */
 
+#if defined(MBEDTLS_ARC2_C)
+static int arc2_crypt_ecb_wrap(void *ctx, mbedtls_operation_t operation,
+        const unsigned char *input, unsigned char *output)
+{
+    return mbedtls_arc2_crypt_ecb((mbedtls_arc2_context *)ctx, operation,
+            input, output);
+}
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+static int arc2_crypt_cbc_wrap(void *ctx, mbedtls_operation_t operation,
+        size_t length, unsigned char *iv,
+        const unsigned char *input, unsigned char *output)
+{
+    return mbedtls_arc2_crypt_cbc((mbedtls_arc2_context *)ctx, operation,
+            length, iv, input, output);
+}
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+static int arc2_setkey_dec_wrap(void *ctx, const unsigned char *key,
+        unsigned int key_bitlen)
+{
+    return mbedtls_arc2_setkey_dec((mbedtls_arc2_context *)ctx,
+            key, key_bitlen);
+}
+
+static int arc2_setkey_enc_wrap(void *ctx, const unsigned char *key,
+        unsigned int key_bitlen)
+{
+    return mbedtls_arc2_setkey_enc((mbedtls_arc2_context *)ctx,
+            key, key_bitlen);
+}
+
+static void *arc2_ctx_alloc(void)
+{
+    mbedtls_arc2_context *arc2 = mbedtls_calloc(1,
+            sizeof(mbedtls_arc2_context));
+
+    if (arc2 == NULL)
+        return NULL;
+
+    mbedtls_arc2_init(arc2);
+
+    return arc2;
+}
+
+static void arc2_ctx_free(void *ctx)
+{
+    mbedtls_arc2_free((mbedtls_arc2_context *)ctx);
+    mbedtls_free(ctx);
+}
+
+static const mbedtls_cipher_base_t arc2_base_info = {
+    MBEDTLS_CIPHER_ID_ARC2,
+    arc2_crypt_ecb_wrap,
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    arc2_crypt_cbc_wrap,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
+    NULL,
+#endif
+    arc2_setkey_enc_wrap,
+    arc2_setkey_dec_wrap,
+    arc2_ctx_alloc,
+    arc2_ctx_free
+};
+
+static const mbedtls_cipher_info_t arc2_40_info = {
+    MBEDTLS_CIPHER_ARC2_40,
+    MBEDTLS_MODE_CBC,
+    40,
+    "ARC2-40",
+    8,
+    0,
+    8,
+    &arc2_base_info
+};
+#endif /* MBEDTLS_ARC2_C */
+
 #if defined(MBEDTLS_ARC4_C)
 static int arc4_crypt_stream_wrap( void *ctx, size_t length,
                                    const unsigned char *input,
@@ -1477,6 +1565,9 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
 #endif
 #endif /* MBEDTLS_AES_C */
 
+#if defined(MBEDTLS_ARC2_C)
+    { MBEDTLS_CIPHER_ARC2_40,              &arc2_40_info },
+#endif
 #if defined(MBEDTLS_ARC4_C)
     { MBEDTLS_CIPHER_ARC4_128,             &arc4_128_info },
 #endif

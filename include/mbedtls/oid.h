@@ -187,6 +187,7 @@
 #define MBEDTLS_OID_PKCS                MBEDTLS_OID_RSA_COMPANY "\x01" /**< pkcs OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) 1 } */
 #define MBEDTLS_OID_PKCS1               MBEDTLS_OID_PKCS "\x01" /**< pkcs-1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 1 } */
 #define MBEDTLS_OID_PKCS5               MBEDTLS_OID_PKCS "\x05" /**< pkcs-5 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 5 } */
+#define MBEDTLS_OID_PKCS7               MBEDTLS_OID_PKCS "\x07" /**< pkcs-7 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 7 } */
 #define MBEDTLS_OID_PKCS9               MBEDTLS_OID_PKCS "\x09" /**< pkcs-9 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 9 } */
 #define MBEDTLS_OID_PKCS12              MBEDTLS_OID_PKCS "\x0c" /**< pkcs-12 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 12 } */
 
@@ -206,6 +207,8 @@
 #define MBEDTLS_OID_RSA_SHA_OBS         "\x2B\x0E\x03\x02\x1D"
 
 #define MBEDTLS_OID_PKCS9_EMAIL         MBEDTLS_OID_PKCS9 "\x01" /**< emailAddress AttributeType ::= { pkcs-9 1 } */
+#define MBEDTLS_OID_PKCS9_CERTTYPES     MBEDTLS_OID_PKCS9 "\x16"
+#define MBEDTLS_OID_PKCS9_CERTTYPES_X509    MBEDTLS_OID_PKCS9_CERTTYPES "\x01"
 
 /* RFC 4055 */
 #define MBEDTLS_OID_RSASSA_PSS          MBEDTLS_OID_PKCS1 "\x0a" /**< id-RSASSA-PSS ::= { pkcs-1 10 } */
@@ -259,14 +262,27 @@
 #define MBEDTLS_OID_PKCS5_PBE_SHA1_RC2_CBC      MBEDTLS_OID_PKCS5 "\x0b" /**< pbeWithSHA1AndRC2-CBC OBJECT IDENTIFIER ::= {pkcs-5 11} */
 
 /*
+ * PKCS#7 OIDs
+ */
+#define MBEDTLS_OID_PKCS7_DATA                  MBEDTLS_OID_PKCS7 "\x01"
+#define MBEDTLS_OID_PKCS7_SIGNED_DATA           MBEDTLS_OID_PKCS7 "\x02"
+#define MBEDTLS_OID_PKCS7_ENVELOPED_DATA        MBEDTLS_OID_PKCS7 "\x03"
+#define MBEDTLS_OID_PKCS7_SIGNED_ENVELOPED_DATA MBEDTLS_OID_PKCS7 "\x04"
+#define MBEDTLS_OID_PKCS7_DIGEST_DATA           MBEDTLS_OID_PKCS7 "\x05"
+#define MBEDTLS_OID_PKCS7_ENCRYPTED_DATA        MBEDTLS_OID_PKCS7 "\x06"
+
+/*
  * PKCS#8 OIDs
  */
 #define MBEDTLS_OID_PKCS9_CSR_EXT_REQ           MBEDTLS_OID_PKCS9 "\x0e" /**< extensionRequest OBJECT IDENTIFIER ::= {pkcs-9 14} */
+#define MBEDTLS_OID_PKCS9_FRIENDLY_NAME         MBEDTLS_OID_PKCS9 "\x14"
+#define MBEDTLS_OID_PKCS9_LOCAL_KEY_ID          MBEDTLS_OID_PKCS9 "\x15"
 
 /*
  * PKCS#12 PBE OIDs
  */
 #define MBEDTLS_OID_PKCS12_PBE                      MBEDTLS_OID_PKCS12 "\x01" /**< pkcs-12PbeIds OBJECT IDENTIFIER ::= {pkcs-12 1} */
+#define MBEDTLS_OID_PKCS12_V1                       MBEDTLS_OID_PKCS12 "\x0a"
 
 #define MBEDTLS_OID_PKCS12_PBE_SHA1_RC4_128         MBEDTLS_OID_PKCS12_PBE "\x01" /**< pbeWithSHAAnd128BitRC4 OBJECT IDENTIFIER ::= {pkcs-12PbeIds 1} */
 #define MBEDTLS_OID_PKCS12_PBE_SHA1_RC4_40          MBEDTLS_OID_PKCS12_PBE "\x02" /**< pbeWithSHAAnd40BitRC4 OBJECT IDENTIFIER ::= {pkcs-12PbeIds 2} */
@@ -274,6 +290,12 @@
 #define MBEDTLS_OID_PKCS12_PBE_SHA1_DES2_EDE_CBC    MBEDTLS_OID_PKCS12_PBE "\x04" /**< pbeWithSHAAnd2-KeyTripleDES-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 4} */
 #define MBEDTLS_OID_PKCS12_PBE_SHA1_RC2_128_CBC     MBEDTLS_OID_PKCS12_PBE "\x05" /**< pbeWithSHAAnd128BitRC2-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 5} */
 #define MBEDTLS_OID_PKCS12_PBE_SHA1_RC2_40_CBC      MBEDTLS_OID_PKCS12_PBE "\x06" /**< pbeWithSHAAnd40BitRC2-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 6} */
+
+#define MBEDTLS_OID_PKCS12_V1_BAG_IDS               MBEDTLS_OID_PKCS12_V1 "\x01"
+#define MBEDTLS_OID_PKCS12_V1_BAG_IDS_SHROUDED_KEY_BAG \
+                                        MBEDTLS_OID_PKCS12_V1_BAG_IDS "\x02"
+#define MBEDTLS_OID_PKCS12_V1_BAG_IDS_CERTIFICATE_BAG \
+                                        MBEDTLS_OID_PKCS12_V1_BAG_IDS "\x03"
 
 /*
  * EC key algorithms from RFC 5480

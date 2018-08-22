@@ -1446,6 +1446,15 @@
 #define MBEDTLS_AES_C
 
 /**
+ * \def MBEDTLS_ARC2_C
+ *
+ * Enable the ARC2 stream cipher.
+ *
+ * Module:  library/arc2.c
+ */
+#define MBEDTLS_ARC2_C
+
+/**
  * \def MBEDTLS_ARC4_C
  *
  * Enable the ARCFOUR stream cipher.

@@ -69,7 +69,7 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	util/pem2der$(EXEXT)		util/strerror$(EXEXT)		\
 	x509/cert_app$(EXEXT)		x509/crl_app$(EXEXT)		\
 	x509/cert_req$(EXEXT)		x509/cert_write$(EXEXT)		\
-	x509/req_app$(EXEXT)
+	x509/req_app$(EXEXT)		x509/pfx_parse$(EXEXT)	
 
 ifdef PTHREAD
 APPS +=	ssl/ssl_pthread_server$(EXEXT)
@@ -271,6 +271,10 @@ x509/cert_req$(EXEXT): x509/cert_req.c $(DEP)
 x509/req_app$(EXEXT): x509/req_app.c $(DEP)
 	echo "  CC    x509/req_app.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/req_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+x509/pfx_parse$(EXEXT): x509/pfx_parse.c $(DEP)
+	echo "  CC    x509/pfx_parse.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/pfx_parse.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
 ifndef WINDOWS

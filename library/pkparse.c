@@ -968,7 +968,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
  *
  */
 #if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
-static int pk_parse_key_pkcs8_encrypted_der(
+int pk_parse_key_pkcs8_encrypted_der(
                                     mbedtls_pk_context *pk,
                                     unsigned char *key, size_t keylen,
                                     const unsigned char *pwd, size_t pwdlen )

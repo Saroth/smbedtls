@@ -674,6 +674,10 @@ static const oid_pkcs12_pbe_alg_t oid_pkcs12_pbe_alg[] =
         MBEDTLS_MD_SHA1,      MBEDTLS_CIPHER_DES_EDE_CBC,
     },
     {
+        { ADD_LEN( MBEDTLS_OID_PKCS12_PBE_SHA1_RC2_40_CBC ), "pbeWithSHAAndRC2-CBC", "PBE with SHA1 and 40 bits RC2" },
+        MBEDTLS_MD_SHA1,      MBEDTLS_CIPHER_ARC2_40,
+    },
+    {
         { NULL, 0, NULL, NULL },
         MBEDTLS_MD_NONE, MBEDTLS_CIPHER_NONE,
     },

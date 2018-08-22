@@ -65,11 +65,12 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		sha256.o	sha512.o	sm2.o		\
 		sm3.o		sm4.o		threading.o	\
 		timing.o	version.o			\
-		version_features.o		xtea.o
+		version_features.o		xtea.o	arc2.o
 
 OBJS_X509=	certs.o		pkcs11.o	x509.o		\
 		x509_create.o	x509_crl.o	x509_crt.o	\
-		x509_csr.o	x509write_crt.o	x509write_csr.o
+		x509_csr.o	x509write_crt.o	x509write_csr.o	\
+		pkcs12_parse.o
 
 OBJS_TLS=	debug.o		net.o		ssl_cache.o	\
 		ssl_ciphersuites.o		ssl_cli.o	\
