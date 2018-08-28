@@ -179,41 +179,42 @@ static int mbedtls_pkcs12_parse_bag_attributes(unsigned char *input,
     }
     *len += p - input;
 
-    if ((ret = mbedtls_asn1_get_alg(&p, end, &oid, &val)) != 0) {
-        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret;
-    }
-    if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS9_FRIENDLY_NAME, &oid)) {
-        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
-    }
-    friendly_name->tag = *val.p;
-    if ((ret = mbedtls_asn1_get_tag(&val.p, val.p + val.len, &val.len,
-                    MBEDTLS_ASN1_BMP_STRING)) != 0) {
-        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret;
-    }
-    friendly_name->len = val.len / 2;
-    if ((friendly_name->p = mbedtls_calloc(1, friendly_name->len)) == 0) {
-        return MBEDTLS_ERR_PK_ALLOC_FAILED;
-    }
-    for (i = 0; i < friendly_name->len; i++) {
-        friendly_name->p[i] = val.p[i * 2 + 1];
+    while (p < end) {
+        if ((ret = mbedtls_asn1_get_alg(&p, end, &oid, &val)) != 0) {
+            return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret;
+        }
+
+        if (!MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS9_FRIENDLY_NAME, &oid)) {
+            friendly_name->tag = *val.p;
+            if ((ret = mbedtls_asn1_get_tag(&val.p, val.p + val.len, &val.len,
+                            MBEDTLS_ASN1_BMP_STRING)) != 0) {
+                return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret;
+            }
+            friendly_name->len = val.len / 2;
+            if ((friendly_name->p = mbedtls_calloc(1, friendly_name->len)) == 0) {
+                return MBEDTLS_ERR_PK_ALLOC_FAILED;
+            }
+            for (i = 0; i < friendly_name->len; i++) {
+                friendly_name->p[i] = val.p[i * 2 + 1];
+            }
+        }
+        else if (!MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS9_LOCAL_KEY_ID, &oid)) {
+            val.tag = *val.p;
+            if ((ret = mbedtls_asn1_get_tag(&val.p, val.p + val.len, &val.len,
+                            MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+                return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret;
+            }
+            *local_key_id = val;
+            if ((local_key_id->p = mbedtls_calloc(1, local_key_id->len)) == 0) {
+                return MBEDTLS_ERR_PK_ALLOC_FAILED;
+            }
+            memcpy(local_key_id->p, val.p, val.len);
+        }
+        else {
+            return MBEDTLS_ERR_PK_INVALID_ALG;
+        }
     }
 
-    if ((ret = mbedtls_asn1_get_alg(&p, end, &oid, &val)) != 0) {
-        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret;
-    }
-    if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS9_LOCAL_KEY_ID, &oid)) {
-        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
-    }
-    val.tag = *val.p;
-    if ((ret = mbedtls_asn1_get_tag(&val.p, val.p + val.len, &val.len,
-                    MBEDTLS_ASN1_OCTET_STRING)) != 0) {
-        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret;
-    }
-    *local_key_id = val;
-    if ((local_key_id->p = mbedtls_calloc(1, local_key_id->len)) == 0) {
-        return MBEDTLS_ERR_PK_ALLOC_FAILED;
-    }
-    memcpy(local_key_id->p, val.p, val.len);
     return 0;
 }
 
@@ -440,14 +441,21 @@ static int mbedtls_pkcs12_parse_contents(mbedtls_pkcs12_context *ctx,
                             val.p, val.len, ctx->pwd, ctx->pwdlen)) != 0) {
                 return ret;
             }
-            if (val.p + val.len < end) {
+            _p = p;
+            if ((ret = mbedtls_asn1_get_tag(&_p, end, &len,
+                            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE))
+                    != 0) {
+                return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret;
+            }
+            _p += len;
+            len = _p - p;
+            if (val.p + val.len < _p) {
                 val.p += val.len;
                 if ((ret = mbedtls_pkcs12_parse_bag_attributes(val.p,
-                                end - val.p, &val.len, &ctx->friendly_name,
+                                _p - val.p, &val.len, &ctx->friendly_name,
                                 &ctx->local_key_id)) != 0) {
                     return ret;
                 }
-                len += val.len;
             }
         }
         else {
