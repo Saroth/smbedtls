@@ -122,7 +122,7 @@ static int mbedtls_pkcs12_verify(mbedtls_pkcs12_context *ctx,
         return ret;
     }
     if (memcmp(hash_output, mac_digest.p, mac_digest.len)) {
-        return MBEDTLS_ERR_PK_PASSWORD_MISMATCH;
+        return MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH;
     }
 
     return 0;
