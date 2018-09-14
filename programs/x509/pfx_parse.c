@@ -87,16 +87,12 @@ int main(int argc, char *argv[])
 {
     int ret;
     mbedtls_pkcs12_context p12_ctx;
-    mbedtls_pk_context pk;
-    mbedtls_x509_crt crt;
 
     if ((ret = arg_parse(argc, argv)) < 0) {
         return 0;
     }
 
     mbedtls_pkcs12_init(&p12_ctx);
-    mbedtls_pk_init(&pk);
-    mbedtls_x509_crt_init(&crt);
 
     mbedtls_printf("  . decrypt PFX file ...");
     ret = mbedtls_pkcs12_decrypt_file(&p12_ctx, opt.filename, opt.pwd);
@@ -109,8 +105,6 @@ int main(int argc, char *argv[])
 
 exit:
     mbedtls_pkcs12_free(&p12_ctx);
-    mbedtls_pk_free(&pk);
-    mbedtls_x509_crt_free(&crt);
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
