@@ -423,6 +423,7 @@ int mbedtls_sm2_verify(mbedtls_sm2_context *ctx, mbedtls_md_type_t md_alg,
                 &s, &ctx->grp.G, &t, &ctx->Q));
 
     /* B7: R = (e + x1) mod n; if (R == r) Success; else Failed; */
+    mbedtls_mpi_free(&t);
     mbedtls_mpi_init(&t);
     MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(&t, &e, &point.X));
     MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&t, &t, &ctx->grp.N));

@@ -28,3 +28,4 @@ massif-*
 *.swp
 *.vimproject
 .exvim.*/
+.ccls-cache/
